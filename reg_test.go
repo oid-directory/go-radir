@@ -51,7 +51,7 @@ func ExampleRegistration_Root_arc() {
 
 func ExampleX680_Depth() {
 	reg := myDedicatedProfile.NewRegistration()
-        reg.X680().SetASN1Notation(ASN1Prefix) // use I-D prefix for simplicity
+	reg.X680().SetASN1Notation(ASN1Prefix) // use I-D prefix for simplicity
 	fmt.Println(reg.X680().Depth())
 	// Output: 8
 }

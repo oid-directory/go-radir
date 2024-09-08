@@ -134,7 +134,7 @@ func TestDITProfile_codecov(t *testing.T) {
 		return nil
 	})
 	ex := *myDedicatedProfile
-	ex.R_DN = `adn`
+	ex.R_DN = `a_dn`
 	ex.R_OC = []string{`top`, `other`}
 	X := &ex
 	X.LDIF()

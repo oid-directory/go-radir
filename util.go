@@ -490,10 +490,10 @@ func writeBigInt(tag string, v *big.Int, fieldValue reflect.Value) (err error) {
 Perform special pre-write checks to ensure sanity and compliance.
 */
 func writeEligible(tag string, value, instance any) (err error) {
-        switch tv := instance.(type) {
-        case *X660:
-                err = tv.writeEligible(tag, value)
-        }
+	switch tv := instance.(type) {
+	case *X660:
+		err = tv.writeEligible(tag, value)
+	}
 
 	return
 }
@@ -604,7 +604,7 @@ func specialHandling(tag string, value, instance any) {
 
 func dotJoin(sp []string) (dot string) {
 	if len(sp) > 0 {
-		dot = join(sp,`.`)
+		dot = join(sp, `.`)
 	}
 
 	return

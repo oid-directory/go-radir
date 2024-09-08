@@ -103,7 +103,7 @@ func TestCache_codecov(t *testing.T) {
 	r.X680().SetASN1Notation(`{joint-iso-itu-t(2) asn1(1)}`)
 	r.X680().SetDotNotation(`2.1`)
 	r.X680().SetIRI(`/ASN.1`)
-	r.X660().SetLongArc(`/ASN.1`)	
+	r.X660().SetLongArc(`/ASN.1`)
 	r.X660().LongArc()
 
 	var c *Cache
@@ -231,15 +231,14 @@ func init() {
 	courtney.FirstAuthority().SetCN("Courtney Tolana")
 	courtney.FirstAuthority().SetO("Individual")
 
-
-	limited := NewCache(1,1)	
+	limited := NewCache(1, 1)
 	limited.Add(threeDee, 0)
 	limited.Add(threeDee, 1)
 	limited.Add(twoDee, 0)
 	limited.Add(twoDee, 1)
-	limited.Add(jesse,1)
-	limited.Add(courtney,0)
-	limited.Add(courtney,1)
+	limited.Add(jesse, 1)
+	limited.Add(courtney, 0)
+	limited.Add(courtney, 1)
 
 	myCache.Add(nil, -1)
 	myCache.Add(threeDee, 0)

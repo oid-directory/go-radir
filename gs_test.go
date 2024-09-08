@@ -27,41 +27,41 @@ func TestASN1NotationToMulti(t *testing.T) {
 
 func TestGS_codecov(t *testing.T) {
 	ditp2 := &DITProfile{
-                R_Model: TwoDimensional,
-                R_RegBase: []string{`ou=Registrations,o=rA`},
-        }
+		R_Model:   TwoDimensional,
+		R_RegBase: []string{`ou=Registrations,o=rA`},
+	}
 	ditp3 := &DITProfile{
-                R_Model: ThreeDimensional,
-                R_RegBase: []string{`ou=Registrations,o=rA`},
-        }
+		R_Model:   ThreeDimensional,
+		R_RegBase: []string{`ou=Registrations,o=rA`},
+	}
 	twoDc := &Registration{R_DITProfile: ditp2}
 
 	_, _ = DNToDotNot3D()
-	_, _ = DNToDotNot3D(nil,&X667{})
-	_, _ = DNToDotNot3D(nil,&X680{r_DITProfile: ditp3})
-	_, _ = DNToDotNot3D([]string{},&X680{r_DITProfile: ditp3})
-	_, _ = DNToDotNot3D(``,&X680{r_DITProfile: ditp2})
-	_, _ = DNToDotNot3D(`ou=Fake,dc=example,dc=com`,&X680{r_DITProfile: ditp3})
-	_, _ = DNToDotNot3D(`dotNotation=Xdc=exampledc=com`,&X680{r_DITProfile: ditp3})
-	_, _ = DNToDotNot3D(`n=56521,1,n=4,n=1,6,3,n=1,ou=Registrationso=rA`,&X680{r_DITProfile: ditp3})
-	_, _ = DNToDotNot3D(`n=56521,1,n=4,n=1,6,3,n=1,ou=Registrations,o=rA`,&X680{r_DITProfile: ditp3})
-	_, _ = DNToDotNot3D(`n=,ou=Registrations,o=rA`,&X680{r_DITProfile: ditp3})
-	_, _ = DNToDotNot3D(`,ou=Registrations,o=rA`,&X680{r_DITProfile: ditp3})
+	_, _ = DNToDotNot3D(nil, &X667{})
+	_, _ = DNToDotNot3D(nil, &X680{r_DITProfile: ditp3})
+	_, _ = DNToDotNot3D([]string{}, &X680{r_DITProfile: ditp3})
+	_, _ = DNToDotNot3D(``, &X680{r_DITProfile: ditp2})
+	_, _ = DNToDotNot3D(`ou=Fake,dc=example,dc=com`, &X680{r_DITProfile: ditp3})
+	_, _ = DNToDotNot3D(`dotNotation=Xdc=exampledc=com`, &X680{r_DITProfile: ditp3})
+	_, _ = DNToDotNot3D(`n=56521,1,n=4,n=1,6,3,n=1,ou=Registrationso=rA`, &X680{r_DITProfile: ditp3})
+	_, _ = DNToDotNot3D(`n=56521,1,n=4,n=1,6,3,n=1,ou=Registrations,o=rA`, &X680{r_DITProfile: ditp3})
+	_, _ = DNToDotNot3D(`n=,ou=Registrations,o=rA`, &X680{r_DITProfile: ditp3})
+	_, _ = DNToDotNot3D(`,ou=Registrations,o=rA`, &X680{r_DITProfile: ditp3})
 
 	_, _ = DNToDotNot2D()
-	_, _ = DNToDotNot2D(nil,&X667{})
-	_, _ = DNToDotNot2D(nil,&X680{r_DITProfile: ditp2})
-	_, _ = DNToDotNot2D([]string{},&X680{r_DITProfile: ditp2})
-	_, _ = DNToDotNot2D(``,&X680{r_DITProfile: ditp3})
-	_, _ = DNToDotNot2D(`ou=Fake,dc=example,dc=com`,&X680{r_DITProfile: ditp2})
-	_, _ = DNToDotNot2D(`dotNotation=Xdc=exampledc=com`,&X680{r_DITProfile: ditp2})
-	_, _ = DNToDotNot2D(`dotRotation=X,ou=Registrations,o=rA`,&X680{r_DITProfile: ditp2})
-	_, _ = DNToDotNot2D(`dotnotation=X,ou=Registrationso=rA`,&X680{r_DITProfile: ditp2})
-	_, _ = DNToDotNot2D(`,ou=Registrations,o=rA`,&X680{r_DITProfile: ditp2})
-	_, _ = DNToDotNot2D(`dotRotation=X,ou=Registrations,o=rA`,&X680{r_DITProfile: ditp2})
+	_, _ = DNToDotNot2D(nil, &X667{})
+	_, _ = DNToDotNot2D(nil, &X680{r_DITProfile: ditp2})
+	_, _ = DNToDotNot2D([]string{}, &X680{r_DITProfile: ditp2})
+	_, _ = DNToDotNot2D(``, &X680{r_DITProfile: ditp3})
+	_, _ = DNToDotNot2D(`ou=Fake,dc=example,dc=com`, &X680{r_DITProfile: ditp2})
+	_, _ = DNToDotNot2D(`dotNotation=Xdc=exampledc=com`, &X680{r_DITProfile: ditp2})
+	_, _ = DNToDotNot2D(`dotRotation=X,ou=Registrations,o=rA`, &X680{r_DITProfile: ditp2})
+	_, _ = DNToDotNot2D(`dotnotation=X,ou=Registrationso=rA`, &X680{r_DITProfile: ditp2})
+	_, _ = DNToDotNot2D(`,ou=Registrations,o=rA`, &X680{r_DITProfile: ditp2})
+	_, _ = DNToDotNot2D(`dotRotation=X,ou=Registrations,o=rA`, &X680{r_DITProfile: ditp2})
 	_, _ = DotNotToDN2D(nil)
-	_, _ = DotNotToDN2D(nil,&X680{})
-	_, _ = DotNotToDN2D(nil,&Registration{})
+	_, _ = DotNotToDN2D(nil, &X680{})
+	_, _ = DotNotToDN2D(nil, &Registration{})
 	_, _ = DotNotToDN2D(rune(10), twoDc)
 	_, _ = DotNotToDN2D(`1.2.X`, twoDc)
 	_, _ = DotNotToDN3D()
@@ -130,7 +130,7 @@ func TestGS_codecov(t *testing.T) {
 	writeString(`cn`, `hi`, valOf(rune(13)))
 	writeValue(nil, nil, `n`)
 	var nothing any = `4`
-	writeValue(&struct{
+	writeValue(&struct {
 		n *any `ldap:"n"`
 	}{
 		n: &nothing,
@@ -150,12 +150,12 @@ func TestGS_codecov(t *testing.T) {
 func TestTime_codecov(t *testing.T) {
 	var ts []any = []any{
 		`20010718155634-0600.019283Z`,
-                `20010718155634.019283432Z`,
+		`20010718155634.019283432Z`,
 		nil,
 		13,
-                `200`,
-                ``,
-                `0600.0192834378297`,
+		`200`,
+		``,
+		`0600.0192834378297`,
 	}
 
 	for _, thyme := range ts {
@@ -177,7 +177,7 @@ func TestTime_codecov(t *testing.T) {
 		return
 	}
 
-	if _, err := GeneralizedTimeToTime([]string{`1`,`2`,`3`}); err == nil {
+	if _, err := GeneralizedTimeToTime([]string{`1`, `2`, `3`}); err == nil {
 		t.Errorf("%s failed: expected error, got nothing", t.Name())
 		return
 	}
@@ -197,4 +197,3 @@ func TestTime_codecov(t *testing.T) {
 		return
 	}
 }
-

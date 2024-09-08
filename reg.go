@@ -36,12 +36,12 @@ this registration. It is populated through subsequent X.680 input, and
 will (likely) be queried at any point by other constructs, such as X.660.
 */
 type registeredRoot struct {
-	Depth 		int	// 0 = root, >=1 sub arc (default: -1)
-	N 		int	// 0, 1 or 2 (default: -1)
-	Id 		string	// identifier (name) of root
-	NaNF		string  // nameAndNumberForm ("Id(N)") of root
-	Structural	string	// rootArc or arc
-	Auxiliary	string	// iTUTRegistration, iSORegistration or jointISOITUTRegistration
+	Depth      int    // 0 = root, >=1 sub arc (default: -1)
+	N          int    // 0, 1 or 2 (default: -1)
+	Id         string // identifier (name) of root
+	NaNF       string // nameAndNumberForm ("Id(N)") of root
+	Structural string // rootArc or arc
+	Auxiliary  string // iTUTRegistration, iSORegistration or jointISOITUTRegistration
 }
 
 /*

@@ -615,7 +615,7 @@ Note that this method is immutable, and will not honor any frozen state or
 mutex lock.
 */
 func (r *Cache) Free() {
-	*r =  Cache{}
+	*r = Cache{}
 }
 
 /*

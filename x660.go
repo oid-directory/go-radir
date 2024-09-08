@@ -26,7 +26,7 @@ type X660 struct {
 	R_AddlUV  []string `ldap:"additionalUnicodeValue"` // RASCHEMA § 2.3.6
 	R_SecId   []string `ldap:"secondaryIdentifier"`    // RASCHEMA § 2.3.8
 	R_StdNF   []string `ldap:"standardizedNameForm"`   // RASCHEMA § 2.3.18
-	R_LongArc []string `ldap:"longArc"`		   // RASCHEMA § 2.3.20
+	R_LongArc []string `ldap:"longArc"`                // RASCHEMA § 2.3.20
 
 	// NON-COLLECTIVE DEDICATED entry DNs
 	R_FAuthyDN []string `ldap:"firstAuthority"`   // RASCHEMA § 2.3.54
@@ -44,7 +44,7 @@ type X660 struct {
 	R_CSAuthy *Sponsor          // RASCHEMA § 2.3.76-93
 
 	r_DITProfile *DITProfile
-	r_root *registeredRoot // linked from *Registration during init
+	r_root       *registeredRoot // linked from *Registration during init
 }
 
 /*
@@ -150,13 +150,13 @@ registration is considered illegal.
 [longArc]: https://datatracker.ietf.org/doc/html/draft-coretta-oiddir-schema#section-2.3.20
 */
 func (r *X660) LongArc() (larc []string) {
-	if !r.IsZero () {
+	if !r.IsZero() {
 		if r.r_root.Depth > 1 && r.r_root.N == 2 {
-        		larc = r.R_LongArc
+			larc = r.R_LongArc
 		}
-        }
+	}
 
-        return
+	return
 }
 
 /*
@@ -164,7 +164,7 @@ SetLongArc assigns one or more string long arc values to the receiver instance.
 Note that if a slice is passed as X, the destination value will be clobbered.
 */
 func (r *X660) SetLongArc(args ...any) error {
-        return writeFieldByTag(`longArc`, r.SetLongArc, r, args...)
+	return writeFieldByTag(`longArc`, r.SetLongArc, r, args...)
 }
 
 /*
@@ -173,7 +173,7 @@ provided [GetOrSetFunc] instance, returning an interface value alongside
 an error.
 */
 func (r *X660) LongArcGetFunc(getfunc GetOrSetFunc) (any, error) {
-        return getFieldValueByNameTagAndGoSF(r, getfunc, `longArc`)
+	return getFieldValueByNameTagAndGoSF(r, getfunc, `longArc`)
 }
 
 /*
@@ -571,12 +571,12 @@ func (r *X660) CombinedSponsor() *Sponsor {
 
 // Ensure certain values are permitted to be set
 func (r *X660) writeEligible(tag string, value any) (err error) {
-        switch lc(tag) {
-        case `longarc`:
+	switch lc(tag) {
+	case `longarc`:
 		if !(r.r_root.Depth > 1 && r.r_root.N == 2) {
 			err = LongArcErr
 		}
-        }
+	}
 
 	return
 }

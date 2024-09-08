@@ -22,13 +22,13 @@ as follows:
 */
 const (
 	OIDPrefix               = `1.3.6.1.4.1.56521.101`
-	IRIPrefix		= `/ISO/Identified-Organization/6/1/4/1/56521/101`
+	IRIPrefix               = `/ISO/Identified-Organization/6/1/4/1/56521/101`
 	AttributeTypesOIDPrefix = OIDPrefix + `.2.3`
 	ObjectClassesOIDPrefix  = OIDPrefix + `.2.5`
 	NameFormsOIDPrefix      = OIDPrefix + `.2.7`
 	TwoDimensional          = OIDPrefix + `.3.1.2`
 	ThreeDimensional        = OIDPrefix + `.3.1.3`
-	ASN1Prefix 		= `{iso identified-organization(3) dod(6) internet(1) private(4) enterprise(1) 56521 oid-directory(101)}`
+	ASN1Prefix              = `{iso identified-organization(3) dod(6) internet(1) private(4) enterprise(1) 56521 oid-directory(101)}`
 )
 
 /*

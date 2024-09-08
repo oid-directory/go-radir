@@ -18,7 +18,7 @@ Instances of this type need not be initialized by the user directly.
 type X690 struct {
 	R_DotEnc     string `ldap:"dotEncoding"` // RASCHEMA § 2.3.103
 	r_DITProfile *DITProfile
-	r_root	     *registeredRoot
+	r_root       *registeredRoot
 }
 
 /*

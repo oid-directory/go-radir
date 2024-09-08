@@ -878,7 +878,7 @@ func (r *DITProfile) NewRegistration(root ...bool) *Registration {
 	return &Registration{
 		R_OC:         oc,
 		R_DITProfile: r,
-		r_root:	      new(registeredRoot),
+		r_root:       new(registeredRoot),
 	}
 }
 

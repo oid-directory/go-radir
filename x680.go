@@ -27,7 +27,7 @@ type X680 struct {
 	R_NaNF       string   `ldap:"nameAndNumberForm"` // RASCHEMA § 2.3.19
 	R_IRI        []string `ldap:"iRI"`               // RASCHEMA § 2.3.3
 	r_DITProfile *DITProfile
-	r_root	     *registeredRoot
+	r_root       *registeredRoot
 }
 
 /*
@@ -332,7 +332,7 @@ func (r *X680) dotNotationHandler(dot string) {
 	}
 
 	if structEmpty(r.r_root) {
-		if n := getRoot(rune(spl[0][0])); (0 <= n && n <= 2) {
+		if n := getRoot(rune(spl[0][0])); 0 <= n && n <= 2 {
 			r.r_root.N = n
 			r.r_root.Depth = len(spl)
 		}

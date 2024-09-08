@@ -106,7 +106,7 @@ func ASN1NotationToMulti(input string) ([]string, error) {
 
 	slices[0] = rnanf
 	if len(slices) == 1 {
-		return []string{`{`+rnanf+`}`, ``, rid, rnanf, root}, nil
+		return []string{`{` + rnanf + `}`, ``, rid, rnanf, root}, nil
 	}
 
 	// append root number form to dot
@@ -140,7 +140,7 @@ func ASN1NotationToMulti(input string) ([]string, error) {
 		dot = append(dot, n)
 	}
 
-	return []string{`{`+join(slices,` `)+`}`, join(dot, `.`), ident, nanf, nf}, nil
+	return []string{`{` + join(slices, ` `) + `}`, join(dot, `.`), ident, nanf, nf}, nil
 }
 
 func checkASN1Root(slice string) (root, rid, rnanf string, err error) {
@@ -400,19 +400,19 @@ func DotNotToDN2D(args ...any) (dn any, err error) {
 		return
 	}
 
-        // Grab our DITProfile instance if defined, else throw          
-        // an error.  This is required because we need to know          
-        // the reg. base string value as well as the directory          
-        // model in use.                                                
-        var duaConf *DITProfile = r.DITProfile()                        
-        // We want at least one Registration Base                       
-        // and our model MUST be 3D. Return error                       
-        // value otherwise.                                             
-        if !duaConf.Valid() || duaConf.Model() != TwoDimensional {      
-                err = DUAConfigValidityErr                              
-                return                                                  
-        }                                                               
-                                                                        
+	// Grab our DITProfile instance if defined, else throw
+	// an error.  This is required because we need to know
+	// the reg. base string value as well as the directory
+	// model in use.
+	var duaConf *DITProfile = r.DITProfile()
+	// We want at least one Registration Base
+	// and our model MUST be 3D. Return error
+	// value otherwise.
+	if !duaConf.Valid() || duaConf.Model() != TwoDimensional {
+		err = DUAConfigValidityErr
+		return
+	}
+
 	// store the original OID here, as we'll
 	// just slap it on our composite DN later.
 	var O string
@@ -466,11 +466,11 @@ func DNToDotNot2D(args ...any) (id any, err error) {
 		return
 	}
 
-        r, ok := args[1].(*X680)
-        if !ok {
-                err = NilRegistrationErr
-                return
-        }
+	r, ok := args[1].(*X680)
+	if !ok {
+		err = NilRegistrationErr
+		return
+	}
 
 	var D string
 	switch tv := args[0].(type) {
@@ -484,24 +484,24 @@ func DNToDotNot2D(args ...any) (id any, err error) {
 		return
 	}
 
-        // Grab our DITProfile instance if defined, else throw
-        // an error.  This is required because we need to know
-        // the reg. base string value as well as the directory
-        // model in use.
-        var duaConf *DITProfile = r.DITProfile()
-        // We want at least one Registration Base
-        // and our model MUST be 3D. Return error
-        // value otherwise.
-        if !duaConf.Valid() || duaConf.Model() != TwoDimensional {
-                err = DUAConfigValidityErr
-                return
-        }
+	// Grab our DITProfile instance if defined, else throw
+	// an error.  This is required because we need to know
+	// the reg. base string value as well as the directory
+	// model in use.
+	var duaConf *DITProfile = r.DITProfile()
+	// We want at least one Registration Base
+	// and our model MUST be 3D. Return error
+	// value otherwise.
+	if !duaConf.Valid() || duaConf.Model() != TwoDimensional {
+		err = DUAConfigValidityErr
+		return
+	}
 
-        bidx := duaConf.RegistrationSuffixEqual(D)
-        if bidx == -1 {
-                err = InvalidDNErr
-                return
-        }
+	bidx := duaConf.RegistrationSuffixEqual(D)
+	if bidx == -1 {
+		err = InvalidDNErr
+		return
+	}
 
 	var N string
 	if idx := idxRune(D, ','); idx != -1 {
@@ -558,18 +558,18 @@ func DotNotToDN3D(args ...any) (dn any, err error) {
 		return
 	}
 
-        // Grab our DITProfile instance if defined, else throw
-        // an error.  This is required because we need to know
-        // the reg. base string value as well as the directory
-        // model in use.
-        var duaConf *DITProfile = r.DITProfile()
-        // We want at least one Registration Base
-        // and our model MUST be 3D. Return error
-        // value otherwise.
-        if !duaConf.Valid() || duaConf.Model() != ThreeDimensional {
-                err = DUAConfigValidityErr
-                return
-        }
+	// Grab our DITProfile instance if defined, else throw
+	// an error.  This is required because we need to know
+	// the reg. base string value as well as the directory
+	// model in use.
+	var duaConf *DITProfile = r.DITProfile()
+	// We want at least one Registration Base
+	// and our model MUST be 3D. Return error
+	// value otherwise.
+	if !duaConf.Valid() || duaConf.Model() != ThreeDimensional {
+		err = DUAConfigValidityErr
+		return
+	}
 
 	var D []string // store a portion of the original dotNotation
 
@@ -625,34 +625,34 @@ See also [this gist].
 [Section 3.1.3 of the RADIT I-D]: https://datatracker.ietf.org/doc/html/draft-coretta-oiddir-radit#section-3.1.3
 */
 func DNToDotNot3D(args ...any) (id any, err error) {
-        if len(args) < 2 {
-                err = NilArgumentsErr
-                return
-        }
+	if len(args) < 2 {
+		err = NilArgumentsErr
+		return
+	}
 
-        r, ok := args[1].(*X680)
-        if !ok {
-                err = NilRegistrationErr
-                return
-        }
+	r, ok := args[1].(*X680)
+	if !ok {
+		err = NilRegistrationErr
+		return
+	}
 
-        // Grab our DITProfile instance if defined, else throw
+	// Grab our DITProfile instance if defined, else throw
 	// an error.  This is required because we need to know
 	// the reg. base string value as well as the directory
-        // model in use.
-        var duaConf *DITProfile = r.DITProfile()
-        // We want at least one Registration Base
-        // and our model MUST be 3D. Return error
-        // value otherwise.
-        if !duaConf.Valid() || duaConf.Model() != ThreeDimensional {
-                err = DUAConfigValidityErr
-                return
-        }
+	// model in use.
+	var duaConf *DITProfile = r.DITProfile()
+	// We want at least one Registration Base
+	// and our model MUST be 3D. Return error
+	// value otherwise.
+	if !duaConf.Valid() || duaConf.Model() != ThreeDimensional {
+		err = DUAConfigValidityErr
+		return
+	}
 
-        // Make sure input args[0] type is supported, else bail.
+	// Make sure input args[0] type is supported, else bail.
 	var D string
-        switch tv := args[0].(type) {
-        case string:
+	switch tv := args[0].(type) {
+	case string:
 		D = lc(tv)
 	default:
 		err = UnsupportedInputTypeErr
@@ -685,4 +685,3 @@ func DNToDotNot3D(args ...any) (id any, err error) {
 
 	return
 }
-

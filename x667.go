@@ -16,10 +16,10 @@ Instances of this type need not be initialized by the user directly.
 [ITU-T Rec. X.667]: https://www.itu.int/rec/T-REC-X.667
 */
 type X667 struct {
-	R_UUID       string `ldap:"registeredUUID"` // RASCHEMA § 2.3.102
+	R_UUID string `ldap:"registeredUUID"` // RASCHEMA § 2.3.102
 
 	r_DITProfile *DITProfile
-	r_root *registeredRoot
+	r_root       *registeredRoot
 }
 
 /*
