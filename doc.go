@@ -35,9 +35,7 @@ For instance, those designing a compliant RA DUA, per the [RADUA I-D], are expec
 
 This is done to maximize compatibility across the many potential use-cases and directory products, as well as to limit potential security vulnerabilities relating to this package itself. This approach also has the secondary effect of making potential integration efforts much simpler and far less disruptive.
 
-However, to aid those wanting to TEST this package as a component in a (RA) DUA implementation, an inert ldap_test.go.txt file is present within the root of this package. It is used by the maintainer to ensure general [go-ldap/v3] viability prior to distributing new releases, and may be utilized by others for ad hoc implementation guidance beyond that which is sensible using Go's package documentation alone.
-
-TLDR; this package works with [go-ldap/v3], but it does NOT import it directly. Do it yourself ... but way easier/safer/better than without this package.
+TLDR; this package works with [go-ldap/v3], but it does NOT import it directly. Do it yourself.
 
 # GetOrSetFunc Extensibility
 
