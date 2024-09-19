@@ -35,6 +35,7 @@ type Subentry struct {
 	RC_TTL string   `ldap:"c-rATTL;collective"`
 	R_GSR  string   `ldap:"governingStructureRule"`
 	R_OC   []string `ldap:"objectClass"`
+	R_STS  []string `ldap:"subtreeSpecification"`
 
 	R_Spatial    *Spatial
 	R_X660       *X660
@@ -59,6 +60,36 @@ Structural returns the STRUCTURAL objectClass `subentry`.
 */
 func (r *Subentry) Structural() (s string) {
 	return `subentry`
+}
+
+/*
+SubtreeSpecification returns the underlying Subtree Specification slice
+values, if set, else zero slices are returned.
+*/
+func (r *Subentry) SubtreeSpecification() (sts []string) {
+	if !r.IsZero() {
+		sts = r.R_STS
+	}
+
+	return
+}
+
+/*
+SetSubtreeSpecification appends the provided string value to the receiver
+instance as a Subtree Specification. If an instance of []string is provided,
+the receiver value is clobbered (overwritten).
+*/
+func (r *Subentry) SetSubtreeSpecification(args ...any) (err error) {
+        return writeFieldByTag(`subtreeSpecification`, r.SetSubtreeSpecification, r, args...)               
+}
+
+/*
+SubtreeSpecificationGetFunc executes the [GetOrSetFunc] instance and
+returns its own return values. The 'any' value will require type assertion
+in order to be accessed reliably. An error is returned if issues arise.
+*/
+func (r *Subentry) SubtreeSpecificationGetFunc(getfunc GetOrSetFunc) (any, error) {
+	return getFieldValueByNameTagAndGoSF(r, getfunc, `subtreeSpecification`)
 }
 
 /*
