@@ -68,6 +68,7 @@ func TestSubentry_codecov(t *testing.T) {
 	subentry.CTTLGetFunc(nil)
 	subentry.SetCTTL(5)
 	subentry.SetDN(`cn=spatialContext,n=6,n=3,n=1,ou=Registrations,o=rA`)
+	subentry.R_STS = nil
 	subentry.LDIF()
 	subentry.refreshObjectClasses()
 	subentry.SetObjectClasses(`x660Context`)
@@ -77,6 +78,7 @@ func TestSubentry_codecov(t *testing.T) {
 	subentry.DNGetFunc(nil)
 	subentry.Unmarshal()
 	subentry.Marshal(nil)
+	subentry.R_STS = nil
 	subentry.Marshal(func(any) error {
 		return nil
 	})

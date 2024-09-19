@@ -116,6 +116,13 @@ func (r *Subentry) LDIF() (l string) {
 				bld.WriteRune(10)
 			}
 
+			// Just to avoid needless errors, if the subtree
+			// specification is empty, set it to []string{`{}`}
+			// to defer to administrative area defaults.
+			if len(r.R_STS) == 0 {
+				r.R_STS = []string{`{}`}
+			}
+
 			bld.WriteString(toLDIF(r))
 			bld.WriteString(r.X660().ldif())
 			bld.WriteString(r.Spatial().ldif())
@@ -307,6 +314,13 @@ func (r *Subentry) Marshal(meth func(any) error) (err error) {
 		if err != nil {
 			return
 		}
+	}
+
+	// Just to avoid needless errors, if the subtree
+	// specification is empty, set it to []string{`{}`}
+	// to defer to administrative area defaults.
+	if len(r.R_STS) == 0 {
+		r.R_STS = []string{`{}`}
 	}
 
 	// clean-up any duplicate objectClass
