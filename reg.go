@@ -625,7 +625,7 @@ func (r *Registration) NewChild(nf, id string) (s *Registration) {
 			return
 		}
 
-		dotp += `.` + nf // complete the new dotNotation
+		dotp += `.` + r.X680().N() + `.` + nf // complete the new dotNotation
 		_s = r.DITProfile().NewRegistration(r.IsRoot())
 		if a1 := r.X680().ASN1Notation(); len(nanf) > 0 && len(a1) > 0 {
 			oiv = trimR(a1, `}`) + ` ` + nanf + `}`

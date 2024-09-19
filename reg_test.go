@@ -54,6 +54,7 @@ func ExampleRegistration_NewChild() {
 	dad.X680().SetN(`5`)
 	dad.X680().SetASN1Notation(`{iso(1) identified-organization(3) dod(6) internet(1) private(4) enterprise(1) 56521 test(5)}`)
 	dad.X680().SetIdentifier(`test`)
+	dad.X680().SetDotNotation(`1.3.6.1.4.1.56521.5`)
 	dad.X680().SetNameAndNumberForm(`test(5)`)
 	dad.SetDN(`n=5,n=56521,n=1,n=4,n=1,n=6,n=3,n=1,ou=Registrations,o=rA`)
 
