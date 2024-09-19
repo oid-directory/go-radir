@@ -31,6 +31,7 @@ method.
 */
 type Subentry struct {
 	R_DN   string   `ldap:"dn"`
+	R_CN   string   `ldap:"cn"`
 	R_TTL  string   `ldap:"rATTL"`
 	RC_TTL string   `ldap:"c-rATTL;collective"`
 	R_GSR  string   `ldap:"governingStructureRule"`
@@ -91,6 +92,32 @@ in order to be accessed reliably. An error is returned if issues arise.
 func (r *Subentry) SubtreeSpecificationGetFunc(getfunc GetOrSetFunc) (any, error) {
 	return getFieldValueByNameTagAndGoSF(r, getfunc, `subtreeSpecification`)
 }
+
+/*                                                                      
+CN returns the common name value assigned to the receiver instance.     
+*/                                                                      
+func (r *Subentry) CN() (val string) {                          
+        if !r.IsZero() {                                                
+		val = r.R_CN                                    
+        }                                                               
+                                                                        
+        return                                                          
+}                                                                       
+                                                                        
+/*                                                                      
+SetCN assigns the provided string value to the receiver instance.       
+*/                                                                      
+func (r *Subentry) SetCN(args ...any) error {                   
+	return writeFieldByTag(`cn`, r.SetCN, r, args...)
+}                                                                       
+                                                                        
+/*                                                                      
+CNGetFunc processes the underlying field value(s) through the provided  
+[GetOrSetFunc] instance, returning an interface value alongside an error.
+*/                                                                      
+func (r *Subentry) CNGetFunc(getfunc GetOrSetFunc) (any, error) {
+        return getFieldValueByNameTagAndGoSF(r, getfunc,`cn`)
+} 
 
 /*
 LDIF returns the string LDIF form of the receiver instance. Note that
