@@ -80,7 +80,7 @@ instance as a Subtree Specification. If an instance of []string is provided,
 the receiver value is clobbered (overwritten).
 */
 func (r *Subentry) SetSubtreeSpecification(args ...any) (err error) {
-        return writeFieldByTag(`subtreeSpecification`, r.SetSubtreeSpecification, r, args...)               
+	return writeFieldByTag(`subtreeSpecification`, r.SetSubtreeSpecification, r, args...)
 }
 
 /*
