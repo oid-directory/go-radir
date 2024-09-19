@@ -144,6 +144,7 @@ func TestDITProfile_codecov(t *testing.T) {
 
 	var fx *DITProfile
 	fx.NewRegistrant()
+	fx.NewSubentry()
 	fx.AllowsRegistrants()
 	fx = new(DITProfile)
 	fx.RegistrationBase(13)

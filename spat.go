@@ -40,6 +40,22 @@ func (r *Registration) Spatial() *Spatial {
 }
 
 /*
+Spatial returns (and if needed, initializes) the embedded instance of
+*[Spatial].
+*/
+func (r *Subentry) Spatial() *Spatial {
+	if r.IsZero() {
+		return &Spatial{}
+	}
+
+	if r.R_Spatial.IsZero() {
+		r.R_Spatial = new(Spatial)
+	}
+
+	return r.R_Spatial
+}
+
+/*
 IsZero returns a Boolean value indicative of a nil receiver state.
 */
 func (r *Spatial) IsZero() bool {

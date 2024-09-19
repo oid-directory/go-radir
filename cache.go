@@ -92,7 +92,7 @@ func (r *Cache) expired(dn string, t int) bool {
 Cache is a thread-safe, memory-based caching type, meant to store any
 number of *[Registrant] and *[Registration] instances for the
 purpose of reducing LDAP utilization. Caching is covered in the [RADUA]
-and [RASCHEMA IDs].
+and [RASCHEMA] IDs.
 
 Instances of either type are associated with their respective LDAP DNs,
 which are queried immediately prior to an LDAP Search.
@@ -154,8 +154,7 @@ reveals whether the instance has been initialized or not. [Cache.Free]
 destroys the *[Cache] -- regardless of freeze state.
 
 [RADUA]: https://datatracker.ietf.org/doc/html/draft-coretta-oiddir-radua
-
-[RASCHEMA I-Ds]: https://datatracker.ietf.org/doc/html/draft-coretta-oiddir-schema
+[RASCHEMA]: https://datatracker.ietf.org/doc/html/draft-coretta-oiddir-schema
 */
 type Cache struct {
 	threshold     [2]int

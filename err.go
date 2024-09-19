@@ -27,6 +27,7 @@ var (
 	InvalidGTFracErr,
 	NilArgumentsErr,
 	FrozenCacheErr,
+	NilInstanceErr,
 	IllegalRootErr,
 	InvalidOIDErr,
 	InvalidGTErr,
@@ -55,6 +56,7 @@ func init() {
 	NilRegistrantErr = errors.New("Registrant instance is nil")
 	NilArgumentsErr = errors.New("Missing input arguments")
 	FrozenCacheErr = errors.New("Cache is frozen")
+	NilInstanceErr = errors.New("Instance is nil")
 	IllegalRootErr = errors.New("Illegal root; must be 'name' or 'name(0|1|2)' or 0|1|2")
 	InvalidOIDErr = errors.New("OID value is malformed or zero length")
 	NilMethodErr = errors.New("Input method signature is nil")

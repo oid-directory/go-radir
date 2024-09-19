@@ -62,6 +62,23 @@ func (r *Registration) Supplement() *Supplement {
 }
 
 /*
+Supplement returns (and if needed, initializes) the embedded instance
+of *[Supplement].
+*/
+func (r *Subentry) Supplement() *Supplement {
+	if r.IsZero() {
+		return &Supplement{}
+	}
+
+	if r.R_Extra.IsZero() {
+		r.R_Extra = new(Supplement)
+		r.R_Extra.r_DITProfile = r.DITProfile()
+	}
+
+	return r.R_Extra
+}
+
+/*
 IsZero returns a Boolean value indicative of a nil receiver state.
 */
 func (r *Supplement) IsZero() bool {

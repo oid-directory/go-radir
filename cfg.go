@@ -842,6 +842,22 @@ func (r *DITProfile) determineRegistrantPolicy() (int, int) {
 }
 
 /*
+NewSubentry initializes and returns a new instance of *[Subentry].
+*/
+func (r *DITProfile) NewSubentry() *Subentry {
+	var oc []string = make([]string, 0)
+	oc = append(oc, []string{
+		`top`,
+		`subentry`,
+	}...)
+
+	return &Subentry{
+		R_OC:         oc,
+		r_DITProfile: r,
+	}
+}
+
+/*
 NewRegistration returns a freshly initialized instance of *[Registration].
 
 The variadic Boolean input value influences which STRUCTURAL "[objectClass]"

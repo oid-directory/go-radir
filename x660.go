@@ -65,6 +65,23 @@ func (r *Registration) X660() *X660 {
 }
 
 /*
+X660 returns (and if needed, initializes) the embedded instance of *[X660].
+*/
+func (r *Subentry) X660() *X660 {
+	if r.IsZero() {
+		return &X660{}
+	}
+
+	if r.R_X660.IsZero() {
+		r.R_X660 = new(X660)
+		r.R_X660.r_DITProfile = r.DITProfile()
+		r.R_X660.r_root = r.r_root
+	}
+
+	return r.R_X660
+}
+
+/*
 DITProfile returns the *[DITProfile] instance assigned to the receiver,
 if set, else nil is returned.
 */
@@ -573,7 +590,9 @@ func (r *X660) CombinedSponsor() *Sponsor {
 func (r *X660) writeEligible(tag string, value any) (err error) {
 	switch lc(tag) {
 	case `longarc`:
-		if !(r.r_root.Depth > 1 && r.r_root.N == 2) {
+		if r.r_root == nil {
+			err = NilInstanceErr
+		} else if !(r.r_root.Depth > 1 && r.r_root.N == 2) {
 			err = LongArcErr
 		}
 	}
