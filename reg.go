@@ -64,8 +64,12 @@ func (r *Registration) isEmpty() bool {
 DN returns the string-based LDAP Distinguished Name value, or a zero
 string if unset.
 */
-func (r *Registration) DN() string {
-	return r.R_DN
+func (r *Registration) DN() (dn string) {
+	if !r.IsZero() {
+		dn = r.R_DN
+	}
+
+	return
 }
 
 /*
@@ -390,6 +394,31 @@ func (r *Registration) Structural() (s string) {
 }
 
 /*
+IsRoot returns a Boolean value indicative of whether the receiver instance
+represents an official root registration, as indicated by presence of the
+"[rootArc]" STRUCTURAL class.
+
+[rootArc]: https://datatracker.ietf.org/doc/html/draft-coretta-oiddir-schema#section-2.5.2
+*/
+func (r *Registration) IsRoot() (is bool) {
+	if !r.IsZero() {
+		if is = eq(r.Structural(), `rootarc`); is {
+			is = strInSlice(r.X680().N(), []string{`0`, `1`, `2`})
+		}
+	}
+
+	return
+}
+
+func (r *Registration) IsNonRoot() (is bool) {
+	if !r.IsZero() {
+		is = eq(r.Structural(), `arc`)
+	}
+
+	return
+}
+
+/*
 DITProfile returns the *[DITProfile] instance assigned to the receiver,
 if set, else nil is returned.
 */
@@ -535,9 +564,9 @@ func (r *Registration) Root() (n int, class string) {
 }
 
 /*
-LDIF returns the string LDIF form of the receiver instance. Note that this
-is a crude approximation of LDIF and should ideally be parsed through a
-reliable LDIF parser such as [go-ldap/ldif] to verify integrity.
+LDIF returns the string LDIF form of the receiver instance. Note that
+this is a crude approximation of LDIF and should ideally be parsed
+through a reliable LDIF parser such as [go-ldap/ldif] to verify integrity.
 
 [go-ldap/ldif]: https://pkg.go.dev/github.com/go-ldap/ldif
 */
@@ -568,6 +597,202 @@ func (r *Registration) LDIF() (l string) {
 			l = bld.String()
 		}
 	}
+
+	return
+}
+
+/*
+NewChild initializes a new instance of *[Registration] bearing superior
+values to that of the receiver.
+*/
+func (r *Registration) NewChild(nf, id string) (s *Registration) {
+	if !r.IsZero() {
+		ident, nanf, dotp, _, ok := r.sibOrSub(nf, id)
+		if !ok {
+			return
+		}
+
+		var oiv string
+		var _s *Registration
+		switch {
+		case r.IsRoot():
+			// Start a new dotNotation, since the
+			// source (root) wouldn't have one to
+			// begin with ...
+			dotp = r.X680().N()
+		case r.IsNonRoot():
+		default:
+			return
+		}
+
+		dotp += `.` + nf // complete the new dotNotation
+		_s = r.DITProfile().NewRegistration(r.IsRoot())
+		if a1 := r.X680().ASN1Notation(); len(nanf) > 0 && len(a1) > 0 {
+			oiv = trimR(a1, `}`) + ` ` + nanf + `}`
+		}
+
+		cdn := `n=` + nf + `,` + r.DN()
+
+		// Use the source's objectClass slices as a template,
+		// but swap rootArc for arc.
+		_s.SetObjectClasses(removeStrInSlice(`rootArc`, r.ObjectClasses()))
+		_s.SetObjectClasses(`arc`)
+
+		for val, funk := range map[string]func(...any) error{
+			ident: _s.X680().SetIdentifier,
+			nanf:  _s.X680().SetNameAndNumberForm,
+			nf:    _s.X680().SetN,
+			dotp:  _s.X680().SetDotNotation,
+			oiv:   _s.X680().SetASN1Notation,
+			cdn:   _s.SetDN,
+		} {
+			if len(val) > 0 {
+				funk(val)
+			}
+		}
+
+		// Take any common spatial types, but use the
+		// source DN for immediate subordinate placement
+		if !r.R_Spatial.IsZero() {
+			dn := r.DN()
+			_s.Spatial().SetSupArc(dn)
+			if r.IsRoot() {
+				_s.Spatial().SetTopArc(dn)
+			} else {
+				_s.Spatial().SetTopArc(r.Spatial().TopArc())
+			}
+		}
+		s = _s
+	}
+
+	return
+}
+
+/*
+NewSibling initializes a new instance of *[Registration] bearing similar
+or "parallel" values to those held by the receiver.
+
+The input value n reflects the desired number form to be held by the new
+*[Registration] instance. If the value is not a number, or is identical
+to that held by the receiver instance, a nil instance is returned. If
+the receiver lacks a DN, a nil instance is returned.
+
+In the case of non-root instances, this value will also serve as the leaf
+"[iRI]" component, if defined within the (source) receiver instance.
+
+The input value id reflects the desired identifier, or name form, to be
+held by the new *[Registration] instance. In turn this also reflects the
+"[nameAndNumberForm]" identifier component to be set.
+
+In the case of non-root instances, the identifier will also serve as the
+"[aSN1Notation]" leaf identifier component. In the case of root instances,
+the identifier serves as the sole "[aSN1Notation]" component, identical
+to the "[nameAndNumberForm]" value.
+
+If the id input value is zero length, all of the above identifier handling
+procedures will be skipped. A valid instance will still be returned. However
+if a non-compliant identifier value is passed, a nil instance is returned.
+
+If the receiver instance possesses any of "[supArc]", "[c-supArc]", "[topArc]",
+"[c-topArc]", "[minArc]", "[c-minArc]", "[maxArc]" or "[c-maxArc]" attribute
+values, they will be transferred automatically, as these are common to all
+relative siblings.
+
+Use of this method is merely a convenient alternative to manual composition
+of a new instance, but will still require additional configuration for cases
+in which the appropriate values cannot be "extrapolated" using receiver input,
+such as "[leftArc]", "[rightArc]", "[subArc]" and others.
+*/
+func (r *Registration) NewSibling(nf, id string) (s *Registration) {
+	if !r.IsZero() {
+		ident, nanf, dotp, dnp, ok := r.sibOrSub(nf, id)
+		if !ok {
+			return
+		}
+
+		var oiv string
+		var _s *Registration
+		switch {
+		case r.IsRoot():
+			dotp = ``
+			_s = r.DITProfile().NewRegistration(true)
+			if len(nanf) > 0 {
+				oiv = `{` + nanf + `}`
+			}
+		case r.IsNonRoot():
+			dotp += `.` + nf
+			_s = r.DITProfile().NewRegistration()
+			a1 := r.X680().ASN1Notation()
+			if len(nanf) > 0 && len(a1) > 0 {
+				poiv := split(a1[1:len(a1)-1], ` `)
+				oiv = `{` + join(poiv[:len(poiv)-1], ` `) + ` ` + nanf + `}`
+			}
+		default:
+			return
+		}
+
+		sdn := `n=` + nf + `,` + dnp
+
+		_s.SetObjectClasses(r.ObjectClasses())
+
+		for val, funk := range map[string]func(...any) error{
+			ident: _s.X680().SetIdentifier,
+			nanf:  _s.X680().SetNameAndNumberForm,
+			nf:    _s.X680().SetN,
+			dotp:  _s.X680().SetDotNotation,
+			oiv:   _s.X680().SetASN1Notation,
+			sdn:   _s.SetDN,
+		} {
+			if len(val) > 0 {
+				funk(val)
+			}
+		}
+
+		// Take any common spatial types
+		if !r.R_Spatial.IsZero() {
+			_s.Spatial().SetSupArc(r.Spatial().SupArc())
+			_s.Spatial().SetTopArc(r.Spatial().TopArc())
+			_s.Spatial().SetMinArc(r.Spatial().MinArc())
+			_s.Spatial().SetMaxArc(r.Spatial().MaxArc())
+		}
+		s = _s
+	}
+
+	return
+}
+
+func (r *Registration) sibOrSub(nf, id string) (ident, nanf, dotp, dnp string, ok bool) {
+	if len(r.DN()) == 0 {
+		// no DN, no service
+		return
+	}
+	if !isNumber(nf) || nf == r.X680().N() {
+		// n is not a number, OR it is
+		// identical to receiver's n.
+		return
+	}
+
+	if len(id) > 0 {
+		if !isIdentifier(id) {
+			// bogus non-zero identifier
+			return
+		}
+		ident = id
+		nanf = id + `(` + nf + `)`
+	}
+
+	if dot := r.X680().DotNotation(); len(dot) > 2 {
+		sp := split(dot, `.`)
+		dotp = join(sp[:len(sp)-1], `.`)
+	}
+
+	// Set the DN last
+	var bdn string = r.DN()
+	if x := idxRune(bdn, ','); x != -1 {
+		dnp = bdn[x+1:]
+	}
+
+	ok = len(dnp) > 0
 
 	return
 }

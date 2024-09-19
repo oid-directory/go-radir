@@ -49,6 +49,94 @@ func ExampleRegistration_Root_arc() {
 	// Output: 1 = iSORegistration
 }
 
+func ExampleRegistration_NewChild() {
+	dad := myDedicatedProfile.NewRegistration()
+	dad.X680().SetN(`5`)
+	dad.X680().SetASN1Notation(`{iso(1) identified-organization(3) dod(6) internet(1) private(4) enterprise(1) 56521 test(5)}`)
+	dad.X680().SetIdentifier(`test`)
+	dad.X680().SetNameAndNumberForm(`test(5)`)
+	dad.SetDN(`n=5,n=56521,n=1,n=4,n=1,n=6,n=3,n=1,ou=Registrations,o=rA`)
+
+	son := dad.NewChild(`10`, `child`)
+	fmt.Printf("%s :: %s\n", son.DN(), son.X680().NameAndNumberForm())
+	// Output: n=10,n=5,n=56521,n=1,n=4,n=1,n=6,n=3,n=1,ou=Registrations,o=rA :: child(10)
+}
+
+func ExampleRegistration_NewSibling() {
+	bro := myDedicatedProfile.NewRegistration()
+	bro.X680().SetN(`5`)
+	bro.X680().SetASN1Notation(`{iso(1) identified-organization(3) dod(6) internet(1) private(4) enterprise(1) 56521 test(5)}`)
+	bro.X680().SetIdentifier(`test`)
+	bro.X680().SetNameAndNumberForm(`test(5)`)
+	bro.SetDN(`n=5,n=56521,n=1,n=4,n=1,n=6,n=3,n=1,ou=Registrations,o=rA`)
+
+	sis := bro.NewSibling(`999`, `example`)
+	fmt.Printf("%s\n", sis.DN())
+	// Output: n=999,n=56521,n=1,n=4,n=1,n=6,n=3,n=1,ou=Registrations,o=rA
+}
+
+/*
+This example demonstrates creating a new child *[Registration] using a root
+*[Registration] as the parent (source).
+*/
+func ExampleRegistration_NewChild_fromRoot() {
+	// iso root
+	root1 := myDedicatedProfile.NewRegistration(true)
+	root1.SetDN(`n=1,ou=Registrations,o=rA`)
+	root1.X680().SetASN1Notation(`{iso(1)}`)
+	root1.X680().SetIdentifier(`iso`)
+	root1.X680().SetN(`1`)
+
+	// Here we initialize the Spatial type, but won't need
+	// to populate it. This trick will result in the source
+	// instance's DN becoming the topArc and/or supArc when
+	// appropriate, but only if already initialized.
+	root1.Spatial()
+
+	root1dot3 := root1.NewChild(`3`, `identified-organization`)
+	fmt.Printf("DN:%s\nNumberForm:%s\nASN1Notation:%s\nNameAndNumberForm:%s",
+		root1dot3.DN(),
+		root1dot3.X680().N(),
+		root1dot3.X680().ASN1Notation(),
+		root1dot3.X680().NameAndNumberForm())
+	// Output: DN:n=3,n=1,ou=Registrations,o=rA
+	// NumberForm:3
+	// ASN1Notation:{iso(1) identified-organization(3)}
+	// NameAndNumberForm:identified-organization(3)
+}
+
+/*
+This example demonstrates a means of quickly initializing a new (root)
+instance of *[Registration] using another root instance as an initializer.
+
+One need only feed the desired number form and identifier string values
+to the [Registration.NewSibling] method to receive the new root instance.
+
+Note that all *[Registration] instances which represent root allocations
+MUST bear a number form of 0, 1 or 2, else it is considered invalid and
+a nil sibling instance would be returned. Also note that the receiver
+instance (the source) must have a DN prior to creating a sibling.
+*/
+func ExampleRegistration_NewSibling_fromRoot() {
+	// iso root
+	root1 := myDedicatedProfile.NewRegistration(true)
+	root1.SetDN(`n=1,ou=Registrations,o=rA`)
+	root1.X680().SetIdentifier(`iso`)
+	root1.X680().SetN(`1`)
+
+	// itu-t root
+	root0 := root1.NewSibling(`0`, `itu-t`)
+	fmt.Printf("DN:%s\nNumberForm:%s\nASN1Notation:%s\nNameAndNumberForm:%s",
+		root0.DN(),
+		root0.X680().N(),
+		root0.X680().ASN1Notation(),
+		root0.X680().NameAndNumberForm())
+	// Output: DN:n=0,ou=Registrations,o=rA
+	// NumberForm:0
+	// ASN1Notation:{itu-t(0)}
+	// NameAndNumberForm:itu-t(0)
+}
+
 func ExampleX680_Depth() {
 	reg := myDedicatedProfile.NewRegistration()
 	reg.X680().SetASN1Notation(ASN1Prefix) // use I-D prefix for simplicity
@@ -226,6 +314,24 @@ func TestITUXSeries_unmarshal(t *testing.T) {
 		t.Errorf("%s X.660 failed: want '%s', got '%s'", t.Name(), want, zval)
 		return
 	}
+
+	yourReg.SetDN(`n=999,n=56521,n=1,n=4,n=1,n=6,n=3,n=1,ou=Registrations,o=rA`)
+	yourReg.X680().SetDotNotation(`1.3.6.1.4.1.56521.999`)
+	_, _, _, _, _ = yourReg.sibOrSub(`-1`, ``)
+	_, _, _, _, _ = yourReg.sibOrSub(`1`, `$TUPID`)
+	_, _, _, _, _ = yourReg.sibOrSub(`15`, `fake`)
+	yourReg.Spatial().SetTopArc(`n=1,ou=Registration,o=rA`)
+	_ = yourReg.NewSibling(`15`, `fake`)
+	_ = yourReg.NewSibling(`-1`, ``)
+	_ = yourReg.NewChild(`15`, `fake`)
+	_ = yourReg.NewChild(`-15`, ``)
+	yourReg.R_OC = append(yourReg.R_OC, `rootArc`)
+	yourReg.X680().R_N = `0`
+	_ = yourReg.NewSibling(`15`, `fake`)
+	yourReg.R_OC = []string{}
+	_ = yourReg.NewChild(`15`, `fake`)
+	_ = yourReg.NewSibling(`15`, `fake`)
+
 }
 
 func TestSpatial(t *testing.T) {
@@ -351,6 +457,7 @@ func bogusRegistration_codecov() error {
 	}
 
 	var empty *Registration
+	_, _, _, _, _ = empty.sibOrSub(`-1`, ``)
 	empty.Unmarshal()
 	empty.Dedicated()
 	empty.Combined()
