@@ -608,7 +608,7 @@ values to that of the receiver.
 */
 func (r *Registration) NewChild(nf, id string) (s *Registration) {
 	if !r.IsZero() {
-		ident, nanf, dotp, _, ok := r.sibOrSub(nf, id)
+		ident, nanf, dotp, _, ok := r.sibOrSub(nf, id, false)
 		if !ok {
 			return
 		}
@@ -706,7 +706,7 @@ such as "[leftArc]", "[rightArc]", "[subArc]" and others.
 */
 func (r *Registration) NewSibling(nf, id string) (s *Registration) {
 	if !r.IsZero() {
-		ident, nanf, dotp, dnp, ok := r.sibOrSub(nf, id)
+		ident, nanf, dotp, dnp, ok := r.sibOrSub(nf, id, true)
 		if !ok {
 			return
 		}
@@ -762,12 +762,12 @@ func (r *Registration) NewSibling(nf, id string) (s *Registration) {
 	return
 }
 
-func (r *Registration) sibOrSub(nf, id string) (ident, nanf, dotp, dnp string, ok bool) {
+func (r *Registration) sibOrSub(nf, id string, sib bool) (ident, nanf, dotp, dnp string, ok bool) {
 	if len(r.DN()) == 0 {
 		// no DN, no service
 		return
 	}
-	if !isNumber(nf) || nf == r.X680().N() {
+	if !isNumber(nf) || (nf == r.X680().N() && sib) {
 		// n is not a number, OR it is
 		// identical to receiver's n.
 		return

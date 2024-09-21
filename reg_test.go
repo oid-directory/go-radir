@@ -318,9 +318,9 @@ func TestITUXSeries_unmarshal(t *testing.T) {
 
 	yourReg.SetDN(`n=999,n=56521,n=1,n=4,n=1,n=6,n=3,n=1,ou=Registrations,o=rA`)
 	yourReg.X680().SetDotNotation(`1.3.6.1.4.1.56521.999`)
-	_, _, _, _, _ = yourReg.sibOrSub(`-1`, ``)
-	_, _, _, _, _ = yourReg.sibOrSub(`1`, `$TUPID`)
-	_, _, _, _, _ = yourReg.sibOrSub(`15`, `fake`)
+	_, _, _, _, _ = yourReg.sibOrSub(`-1`, ``, true)
+	_, _, _, _, _ = yourReg.sibOrSub(`1`, `$TUPID`, false)
+	_, _, _, _, _ = yourReg.sibOrSub(`15`, `fake`, true)
 	yourReg.Spatial().SetTopArc(`n=1,ou=Registration,o=rA`)
 	_ = yourReg.NewSibling(`15`, `fake`)
 	_ = yourReg.NewSibling(`-1`, ``)
@@ -458,7 +458,7 @@ func bogusRegistration_codecov() error {
 	}
 
 	var empty *Registration
-	_, _, _, _, _ = empty.sibOrSub(`-1`, ``)
+	_, _, _, _, _ = empty.sibOrSub(`-1`, ``, false)
 	empty.Unmarshal()
 	empty.Dedicated()
 	empty.Combined()
