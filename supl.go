@@ -89,6 +89,14 @@ func (r *Supplement) isEmpty() bool {
 	return structEmpty(r)
 }
 
+func (r *Supplement) ldif() (l string) {                                   
+        if !r.IsZero() {                                                
+                l = toLDIF(r)                                           
+        }                                                               
+                                                                        
+        return                                                          
+}
+
 /*
 Unmarshal returns an instance of map[string][]string bearing the contents
 of the receiver.
