@@ -89,12 +89,12 @@ func (r *Supplement) isEmpty() bool {
 	return structEmpty(r)
 }
 
-func (r *Supplement) ldif() (l string) {                                   
-        if !r.IsZero() {                                                
-                l = toLDIF(r)                                           
-        }                                                               
-                                                                        
-        return                                                          
+func (r *Supplement) ldif() (l string) {
+	if !r.IsZero() {
+		l = toLDIF(r)
+	}
+
+	return
 }
 
 /*

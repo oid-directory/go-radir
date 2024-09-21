@@ -593,6 +593,7 @@ func (r *Registration) LDIF() (l string) {
 			bld.WriteString(r.X680().ldif())
 			bld.WriteString(r.X690().ldif())
 			bld.WriteString(r.Spatial().ldif())
+			bld.WriteString(r.Supplement().ldif())
 
 			l = bld.String()
 		}
