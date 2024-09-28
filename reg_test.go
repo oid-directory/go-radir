@@ -95,6 +95,7 @@ func ExampleRegistration_NewChild_fromRoot() {
 	root1.Spatial()
 
 	root1dot3 := root1.NewChild(`3`, `identified-organization`)
+
 	fmt.Printf("DN:%s\nNumberForm:%s\nASN1Notation:%s\nNameAndNumberForm:%s",
 		root1dot3.DN(),
 		root1dot3.X680().N(),
@@ -477,8 +478,7 @@ func TestRegistrations(t *testing.T) {
 	nreg3.X680().SetIdentifier(`dad`)
 	nreg3.X680().SetASN1Notation(`{iso identified-organization(3) dod(6) internet(1) private(4) enterprise(1) 56521 example(999) dad(8)}`)
 	nreg3.X680().SetN(`8`)
-	nreg3a := nreg3.NewChild(`14`, `son`)
-	t.Logf("%s\n", nreg3a.LDIF())
+	_ = nreg3.NewChild(`14`, `son`)
 
 	regs.SetSpatialH()
 	regs.Push(nreg2) // ordered incorrectly
@@ -504,26 +504,9 @@ func TestRegistrations(t *testing.T) {
 	}
 
 	dad := regs.Get(o2)
-	t.Logf("DN:%s\nTOP:%s\nSUP:%s\nMIN:%s\nLEFT:%s\nRIGHT:%s\nMAX:%s\nSUB:%v\n",
-		dad.DN(),
-		dad.Spatial().TopArc(),
-		dad.Spatial().SupArc(),
-		dad.Spatial().MinArc(),
-		dad.Spatial().LeftArc(),
-		dad.Spatial().RightArc(),
-		dad.Spatial().MaxArc(),
-		dad.Spatial().SubArc())
-
-	son := dad.Children().Index(0)
-	t.Logf("DN:%s\nTOP:%s\nSUP:%s\nMIN:%s\nLEFT:%s\nRIGHT:%s\nMAX:%s\nSUB:%v\n",
-		son.DN(),
-		son.Spatial().TopArc(),
-		son.Spatial().SupArc(),
-		son.Spatial().MinArc(),
-		son.Spatial().LeftArc(),
-		son.Spatial().RightArc(),
-		son.Spatial().MaxArc(),
-		son.Spatial().SubArc())
+	dad.Size()
+	dad.LDIFs()
+	//son := dad.Children().Index(0)
 
 	// codecov
 	regs = append(regs, &Registration{})
@@ -584,10 +567,14 @@ func bogusRegistration_codecov() error {
 
 		regs = append(regs, nilReg)
 		regs.Unmarshal()
+		regs.Index(0)
+		regs.Index(0).Size()
 
 		nilReg.X680().dotNotationHandler(``)
 		nilReg.X680().dotNotationHandler(`.`)
 		nilReg.X680().asn1NotationHandler(`{iso}`)
+
+		regs.Push(nilReg)
 
 		nilReg.R_OC = append(nilReg.R_OC, `x690Context`)
 		nilReg.R_OC = append(nilReg.R_OC, `x680Context`)
@@ -682,6 +669,7 @@ func testBogusRegistrationGetters(nilReg *Registration) error {
 	nilReg.R_TTL = ""
 	nilReg.RC_TTL = ""
 	nilReg.TTL()
+	nilReg.Parent()
 	nilReg.R_DN = "n=1,n=3,n=1,ou=Registrations,o=rA"
 	nilReg.SetDITProfile(myCombinedProfile)
 	nilReg.DITProfile().R_TTL = "5"

@@ -26,10 +26,9 @@ type Registration struct {
 	R_Spatial *Spatial    // Non-standard: Spatial types
 
 	R_DITProfile *DITProfile
-
-	R_Children *Registrations
-
-	r_root *registeredRoot
+	r_Parent     *Registration
+	r_Children   *Registrations
+	r_root       *registeredRoot
 }
 
 /*
@@ -179,7 +178,7 @@ func (r *Registrations) SetSpatialV(recursive ...bool) {
 					if tdn != "" {
 						child.Spatial().SetTopArc(tdn)
 					}
-					if recurse && child.R_Children != nil {
+					if recurse && child.r_Children != nil {
 						child.Children().SetSpatialV(recurse)
 					}
 				}
@@ -239,7 +238,7 @@ func (r Registrations) Len() int {
 }
 
 func (r Registrations) Index(idx int) (reg *Registration) {
-	if idx < r.Len() {
+	if 0 <= idx && idx < r.Len() {
 		reg = r[idx]
 	}
 
@@ -266,17 +265,61 @@ func (r *Registrations) SortByNumberForm() {
 }
 
 /*
+Parent returns the underlying instance of *[Registration] present within
+the receiver, or a zero instance if unset.
+
+The parent instance is set automatically through use of the [Registration.NewChild]
+method.
+*/
+func (r *Registration) Parent() (reg *Registration) {
+	if !r.IsZero() {
+		reg = r.r_Parent
+	}
+
+	return
+}
+
+/*
+Size traverses the extent of the underlying OID tree and returns the
+integer total of all non-nil *[Registration] instances found en route.
+
+Note that this process does not traverse "upwards" -- only "downwards".
+This means that for a COMPLETE total of an entire root's OIDs, this
+method should be executed upon said root *[Registration] instance.
+
+Otherwise, it will only count the number of instances from that point
+downward.
+*/
+func (r *Registration) Size() (size int) {
+	if !r.IsZero() {
+		size++
+		K := r.Children()
+		LK := K.Len()
+		for i := 0; i < LK; i++ {
+			if sub := (*K)[i]; !sub.IsZero() {
+				size += sub.Size()
+			}
+		}
+	}
+
+	return
+}
+
+/*
 Children returns the underlying instance of *[Registrations] present within
-the receiver instance.
+the receiver's child slice instance, or a zero instance if unset.
+
+The child slice instances are set automatically through use of the
+[Registration.NewChild] method.
 */
 func (r *Registration) Children() (regs *Registrations) {
 	if !r.IsZero() {
-		if r.R_Children == nil {
+		if r.r_Children == nil {
 			k := make(Registrations, 0)
-			r.R_Children = &k
+			r.r_Children = &k
 		}
 
-		regs = r.R_Children
+		regs = r.r_Children
 	}
 
 	return
@@ -836,6 +879,36 @@ func (r *Registration) LDIF() (l string) {
 }
 
 /*
+LDIFs traverses the extent of the underlying OID tree and returns the
+content as an LDIF payload containing all non-nil *[Registration]
+instances found en route.
+
+Note that this process does not traverse "upwards" -- only "downwards".
+This means that for a COMPLETE set of an entire root's LDIFs, this
+method should be executed upon said root *[Registration] instance.
+
+Otherwise, it will only write the instances from that point downward.
+*/
+func (r *Registration) LDIFs() (l string) {
+	if !r.IsZero() {
+		_l := newBuilder()
+		_l.WriteString(r.LDIF())
+		_l.WriteRune(10)
+		K := r.Children()
+		LK := K.Len()
+		for i := 0; i < LK; i++ {
+			if sub := (*K)[i]; !sub.IsZero() {
+				_l.WriteString(sub.LDIFs())
+				_l.WriteRune(10)
+			}
+		}
+		l = _l.String()
+	}
+
+	return
+}
+
+/*
 NewChild initializes a new instance of *[Registration] bearing superior
 values to that of the receiver. If successful, the return value will be
 automatically added to the underlying children *[Registrations] instance.
@@ -904,6 +977,7 @@ func (r *Registration) NewChild(nf, id string) (s *Registration) {
 		} else {
 			_s.Spatial().SetTopArc(r.Spatial().TopArc())
 		}
+		_s.r_Parent = r
 		s = _s
 
 		r.Children().Push(s)
