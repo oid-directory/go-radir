@@ -23,7 +23,7 @@ var (
 	fields     func(string) []string               = strings.Fields
 	hasPfx     func(string, string) bool           = strings.HasPrefix
 	hasSfx     func(string, string) bool           = strings.HasSuffix
-	idxRune    func(string, rune) int              = strings.IndexRune
+	idxr       func(string, rune) int              = strings.IndexRune
 	join       func([]string, string) string       = strings.Join
 	lc         func(string) string                 = strings.ToLower
 	uc         func(string) string                 = strings.ToUpper

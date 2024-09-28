@@ -464,7 +464,23 @@ func TestRegistrations(t *testing.T) {
 	nreg2.SetDN(`n=2,n=18,n=999,n=56521,n=1,n=4,n=1,n=6,n=3,n=1,ou=Registrations,o=rA`)
 	nreg2.X680().SetDotNotation(o2)
 	nreg2.X680().SetN(`2`)
+	nreg2.Spatial().SetTopArc("n=1,ou=Registrations,o=rA")
+	nreg2.Spatial().SetSupArc(`n=18,n=999,n=56521,n=1,n=4,n=1,n=6,n=3,n=1,ou=Registrations,o=rA`)
+	_ = nreg2.NewChild(`33`, `thisName`) // no need for var
+	nreg2.Children().SetSpatialV(true)
 
+	twoDPro := NewFactoryDefaultDUAConfig()
+	twoDPro.R_DSE.R_Model = TwoDimensional
+	nreg3 := twoDPro.Profile().NewRegistration()
+	nreg3.X680().SetDotNotation(`1.3.6.1.4.1.56521.999.8`)
+	nreg3.SetDN(nreg3.X680().DotNotation(), DotNotToDN2D)
+	nreg3.X680().SetIdentifier(`dad`)
+	nreg3.X680().SetASN1Notation(`{iso identified-organization(3) dod(6) internet(1) private(4) enterprise(1) 56521 example(999) dad(8)}`)
+	nreg3.X680().SetN(`8`)
+	nreg3a := nreg3.NewChild(`14`, `son`)
+	t.Logf("%s\n", nreg3a.LDIF())
+
+	regs.SetSpatialH()
 	regs.Push(nreg2) // ordered incorrectly
 	regs.Push(nreg1)
 
@@ -479,14 +495,41 @@ func TestRegistrations(t *testing.T) {
 		return
 	}
 
+	regs.SetSpatialH()
+	regs.SetSpatialV(true)
+
 	if !regs.Contains(o1) {
 		t.Errorf("%s failed; '%s' not found", t.Name(), o1)
 		return
 	}
 
+	dad := regs.Get(o2)
+	t.Logf("DN:%s\nTOP:%s\nSUP:%s\nMIN:%s\nLEFT:%s\nRIGHT:%s\nMAX:%s\nSUB:%v\n",
+		dad.DN(),
+		dad.Spatial().TopArc(),
+		dad.Spatial().SupArc(),
+		dad.Spatial().MinArc(),
+		dad.Spatial().LeftArc(),
+		dad.Spatial().RightArc(),
+		dad.Spatial().MaxArc(),
+		dad.Spatial().SubArc())
+
+	son := dad.Children().Index(0)
+	t.Logf("DN:%s\nTOP:%s\nSUP:%s\nMIN:%s\nLEFT:%s\nRIGHT:%s\nMAX:%s\nSUB:%v\n",
+		son.DN(),
+		son.Spatial().TopArc(),
+		son.Spatial().SupArc(),
+		son.Spatial().MinArc(),
+		son.Spatial().LeftArc(),
+		son.Spatial().RightArc(),
+		son.Spatial().MaxArc(),
+		son.Spatial().SubArc())
+
 	// codecov
 	regs = append(regs, &Registration{})
 	regs = append(regs, &Registration{})
+	regs.SetSpatialH()
+	regs.SetSpatialV()
 
 	if regs.Less(2, 3) {
 		t.Errorf("%s failed: want false, got true", t.Name())

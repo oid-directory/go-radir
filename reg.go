@@ -27,6 +27,8 @@ type Registration struct {
 
 	R_DITProfile *DITProfile
 
+	R_Children *Registrations
+
 	r_root *registeredRoot
 }
 
@@ -73,24 +75,124 @@ func (r Registrations) Contains(oid string) bool {
 }
 
 /*
+SetSpatialH will link all X-Axis (Horizontal) spatial references
+according to the number form magnitude-ordered slice instances
+within the receiver.
+
+This process will result in attempting to set all of "[minArc]", "[maxArc]",
+"[leftArc]" and "[rightArc]". It will not set collective variants of these types.
+
+Note this operation has the potential to be convenient, but also quite
+intensive if the receiver contains many slice instances.
+
+See also the [Registration.SetSpatialV] method.
+
+[leftArc]: https://datatracker.ietf.org/doc/html/draft-coretta-oiddir-schema#section-2.3.26
+[rightArc]: https://datatracker.ietf.org/doc/html/draft-coretta-oiddir-schema#section-2.3.29
+[minArc]: https://datatracker.ietf.org/doc/html/draft-coretta-oiddir-schema#section-2.3.27
+[maxArc]: https://datatracker.ietf.org/doc/html/draft-coretta-oiddir-schema#section-2.3.30
+*/
+func (r *Registrations) SetSpatialH() {
+	L := r.Len()
+	if L < 2 {
+		// Its really not practical to set the
+		// four X-axis spatial types upon less
+		// than two slice members ...
+		return
+	}
+
+	min := (*r)[0]
+	max := (*r)[L-1]
+
+	for i := 0; i < L; i++ {
+		this := (*r)[i]
+		if this.DN() == "" {
+			// This absolutely cannot work.
+			continue
+		}
+
+		if i > 0 {
+			this.Spatial().SetLeftArc((*r)[i-1].DN())
+		}
+
+		if i < L-1 {
+			this.Spatial().SetRightArc((*r)[i+1].DN())
+		}
+
+		if dn := min.DN(); dn != "" {
+			this.Spatial().SetMinArc(dn)
+			if this.Spatial().LeftArc() == "" && i == 0 {
+				// In case we're at the FIRST element
+				// and NO leftArc was set above ...
+				this.Spatial().SetLeftArc(dn)
+			}
+		}
+
+		if dn := max.DN(); dn != "" {
+			this.Spatial().SetMaxArc(dn)
+			if this.Spatial().RightArc() == "" && i == L-1 {
+				// In case we're at the LAST element
+				// and NO rightArc was set above ...
+				this.Spatial().SetRightArc(dn)
+			}
+		}
+	}
+}
+
+/*
+SetSpatialV will link all Y-Axis (Vertical) spatial references according
+to vertical (root, parent, child) association.
+
+This process will result in attempting to set all of "[topArc]", "[supArc]",
+and "[subArc]". It will not set collective variants of these types.
+
+Note this operation has the potential to be convenient, but also quite
+intensive if the receiver contains many slice instances.
+
+See also the [Registration.SetSpatialH] method.
+
+[supArc]: https://datatracker.ietf.org/doc/html/draft-coretta-oiddir-schema#section-2.3.21
+[topArc]: https://datatracker.ietf.org/doc/html/draft-coretta-oiddir-schema#section-2.3.23
+[subArc]: https://datatracker.ietf.org/doc/html/draft-coretta-oiddir-schema#section-2.3.25
+*/
+func (r *Registrations) SetSpatialV(recursive ...bool) {
+	var recurse bool
+	if len(recursive) > 0 {
+		recurse = recursive[0]
+	}
+
+	for i := 0; i < r.Len(); i++ {
+		if reg := (*r)[i]; !reg.IsZero() {
+			sdn := reg.DN()
+			tdn := reg.Spatial().TopArc()
+
+			children := reg.Children()
+			LK := children.Len()
+			for i := 0; i < LK; i++ {
+				if child := (*children)[i]; !child.IsZero() {
+					if cdn := child.DN(); cdn != "" {
+						reg.Spatial().SetSubArc(cdn)
+					}
+					if sdn != "" {
+						child.Spatial().SetSupArc(sdn)
+					}
+					if tdn != "" {
+						child.Spatial().SetTopArc(tdn)
+					}
+					if recurse && child.R_Children != nil {
+						child.Children().SetSpatialV(recurse)
+					}
+				}
+			}
+		}
+	}
+}
+
+/*
 Less returns a Boolean value indicative of whether the slice at index
 i is deemed to be less than the slice at j in the context of ordering.
 
-This method is intended to satisfy the func(int,int) bool signature
-required by [sort.Interface].
-
-See also [Stack.SetLessFunc] method for a means of specifying instances
-of this function.
-
-If no custom closure was assigned, the package-default closure is used,
-which evaluates the string representation of values in order to conduct
-alphabetical sorting. This means that both i and j must reference slice
-values in one of the following states:
-
-  - Type of slice instance must have its own String method
-  - Value is a go primitive, such as a string or int
-
-Equal values return false, as do zero string values.
+Ordering is implemented according to individual number form magnitudes.
 */
 func (r Registrations) Less(i, j int) (less bool) {
 	if len(r) <= i || len(r) <= j {
@@ -136,6 +238,14 @@ func (r Registrations) Len() int {
 	return len(r)
 }
 
+func (r Registrations) Index(idx int) (reg *Registration) {
+	if idx < r.Len() {
+		reg = r[idx]
+	}
+
+	return
+}
+
 /*
 Swap implements the func(int,int) signature required by the [sort.Interface]
 signature. The result is the swapping of the specified receiver slice indices.
@@ -153,6 +263,23 @@ slice instance according to NumberForm magnitude, ordered lowest to highest.
 */
 func (r *Registrations) SortByNumberForm() {
 	stabSort(r)
+}
+
+/*
+Children returns the underlying instance of *[Registrations] present within
+the receiver instance.
+*/
+func (r *Registration) Children() (regs *Registrations) {
+	if !r.IsZero() {
+		if r.R_Children == nil {
+			k := make(Registrations, 0)
+			r.R_Children = &k
+		}
+
+		regs = r.R_Children
+	}
+
+	return
 }
 
 /*
@@ -710,7 +837,8 @@ func (r *Registration) LDIF() (l string) {
 
 /*
 NewChild initializes a new instance of *[Registration] bearing superior
-values to that of the receiver.
+values to that of the receiver. If successful, the return value will be
+automatically added to the underlying children *[Registrations] instance.
 */
 func (r *Registration) NewChild(nf, id string) (s *Registration) {
 	if !r.IsZero() {
@@ -719,8 +847,6 @@ func (r *Registration) NewChild(nf, id string) (s *Registration) {
 			return
 		}
 
-		var oiv string
-		var _s *Registration
 		switch {
 		case r.IsRoot():
 			// Start a new dotNotation, since the
@@ -732,13 +858,23 @@ func (r *Registration) NewChild(nf, id string) (s *Registration) {
 			return
 		}
 
-		dotp += `.` + r.X680().N() + `.` + nf // complete the new dotNotation
-		_s = r.DITProfile().NewRegistration(r.IsRoot())
+		dotp += `.` + nf // complete the new dotNotation
+
+		var oiv string
+		_s := r.DITProfile().NewRegistration()
 		if a1 := r.X680().ASN1Notation(); len(nanf) > 0 && len(a1) > 0 {
 			oiv = trimR(a1, `}`) + ` ` + nanf + `}`
 		}
 
-		cdn := `n=` + nf + `,` + r.DN()
+		var this string = r.DN()
+		var cdn string
+		if r.DITProfile().Model() == TwoDimensional {
+			if idx := idxr(this, ','); idx != -1 {
+				cdn = `dotNotation=` + dotp + `,` + this[idx+1:]
+			}
+		} else {
+			cdn = `n=` + nf + `,` + r.DN()
+		}
 
 		// Use the source's objectClass slices as a template,
 		// but swap rootArc for arc.
@@ -760,16 +896,17 @@ func (r *Registration) NewChild(nf, id string) (s *Registration) {
 
 		// Take any common spatial types, but use the
 		// source DN for immediate subordinate placement
-		if !r.R_Spatial.IsZero() {
-			dn := r.DN()
-			_s.Spatial().SetSupArc(dn)
-			if r.IsRoot() {
-				_s.Spatial().SetTopArc(dn)
-			} else {
-				_s.Spatial().SetTopArc(r.Spatial().TopArc())
-			}
+		dn := r.DN()
+		r.Spatial().SetSubArc(cdn)
+		_s.Spatial().SetSupArc(dn)
+		if r.IsRoot() {
+			_s.Spatial().SetTopArc(dn)
+		} else {
+			_s.Spatial().SetTopArc(r.Spatial().TopArc())
 		}
 		s = _s
+
+		r.Children().Push(s)
 	}
 
 	return
@@ -873,6 +1010,7 @@ func (r *Registration) sibOrSub(nf, id string, sib bool) (ident, nanf, dotp, dnp
 		// no DN, no service
 		return
 	}
+
 	if !isNumber(nf) || (nf == r.X680().N() && sib) {
 		// n is not a number, OR it is
 		// identical to receiver's n.
@@ -890,12 +1028,16 @@ func (r *Registration) sibOrSub(nf, id string, sib bool) (ident, nanf, dotp, dnp
 
 	if dot := r.X680().DotNotation(); len(dot) > 2 {
 		sp := split(dot, `.`)
-		dotp = join(sp[:len(sp)-1], `.`)
+		if sib {
+			dotp = join(sp[:len(sp)-1], `.`)
+		} else {
+			dotp = dot
+		}
 	}
 
 	// Set the DN last
 	var bdn string = r.DN()
-	if x := idxRune(bdn, ','); x != -1 {
+	if x := idxr(bdn, ','); x != -1 {
 		dnp = bdn[x+1:]
 	}
 

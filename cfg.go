@@ -889,6 +889,7 @@ func (r *DITProfile) NewRegistration(root ...bool) *Registration {
 			soc = `rootArc`
 		}
 	}
+
 	oc = append(oc, soc)
 
 	return &Registration{

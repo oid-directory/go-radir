@@ -195,7 +195,7 @@ func nanfToIdAndNF(in string) (id, n string) {
 		return
 	}
 
-	if idx := idxRune(in, '('); idx != -1 {
+	if idx := idxr(in, '('); idx != -1 {
 		final := len(in) - 1
 		if in[final] != ')' {
 			return
@@ -504,7 +504,7 @@ func DNToDotNot2D(args ...any) (id any, err error) {
 	}
 
 	var N string
-	if idx := idxRune(D, ','); idx != -1 {
+	if idx := idxr(D, ','); idx != -1 {
 		N = replaceAll(lc(D[:idx]), `dotnotation=`, ``)
 	}
 
