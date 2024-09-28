@@ -267,6 +267,56 @@ func ExampleASN1NotationToMulti_sixValuesFromOne() {
 	// nameAndNumberForm: oid-directory(101)
 }
 
+func TestRegistration_Allocate(t *testing.T) {
+	prof := myDedicatedProfile
+	iso := prof.NewRegistration(true)
+	iso.SetDN(`n=1,ou=Registrations,o=rA`)
+	iso.X680().SetN(`1`)
+	iso.X680().SetASN1Notation(`{iso(1)}`)
+	iso.X680().SetIRI(`/ISO`)
+	iso.X660().SetUnicodeValue(`ISO`)
+
+	iso.Allocate(`1.3.6.1.4.1.56521`)
+	jesse := iso.Walk(`1.3.6.1.4.1.56521`)
+	if n := jesse.X680().N(); n != `56521` {
+		t.Errorf("%s failed: want 56521, got %s", t.Name(), n)
+		return
+	}
+
+	jesse.Allocate([]string{})
+	jesse.Allocate(nil)
+
+	itu := prof.NewRegistration(true)
+	itu.Allocate(`0.2`)
+	if n := itu.X680().N(); n != `0` {
+		t.Errorf("%s failed: want 0, got %s", t.Name(), n)
+	}
+}
+
+func TestRegistration_Walk(t *testing.T) {
+	prof := myDedicatedProfile
+	iso := prof.NewRegistration(true)
+	iso.SetDN(`n=1,ou=Registrations,o=rA`)
+	iso.X680().SetN(`1`)
+	iso.X680().SetASN1Notation(`{iso(1)}`)
+	iso.X680().SetIRI(`/ISO`)
+	iso.X660().SetUnicodeValue(`ISO`)
+
+	org := iso.NewChild(`3`, `identified-organization`)
+	org.X660().SetUnicodeValue(`Identified-Organization`)
+	org.X680().SetIRI(`/ISO/Identified-Organization`)
+
+	dod := org.NewChild(`6`, `dod`)
+	dod.X680().SetIRI(`/ISO/Identified-Organization/6`)
+
+	dodOID := `1.3.6`
+
+	defense := iso.Walk(dodOID)
+	if defense.X680().DotNotation() != dodOID {
+		t.Errorf("%s failed: could not find dod", t.Name())
+	}
+}
+
 func TestITUXSeries_unmarshal(t *testing.T) {
 	w := &X690{r_root: new(registeredRoot)}
 	w.SetDotEncoding(`BgEr`)
@@ -469,6 +519,9 @@ func TestRegistrations(t *testing.T) {
 	nreg2.Spatial().SetSupArc(`n=18,n=999,n=56521,n=1,n=4,n=1,n=6,n=3,n=1,ou=Registrations,o=rA`)
 	_ = nreg2.NewChild(`33`, `thisName`) // no need for var
 	nreg2.Children().SetSpatialV(true)
+	nreg2.Walk(nil)
+	nreg2.Size()
+	nreg2.LDIFs()
 
 	twoDPro := NewFactoryDefaultDUAConfig()
 	twoDPro.R_DSE.R_Model = TwoDimensional
@@ -490,7 +543,7 @@ func TestRegistrations(t *testing.T) {
 	}
 
 	regs.SortByNumberForm() // reorder
-	if N := regs.Get(o1).X680().N(); N != `1` {
+	if N := regs.Get(`1`).X680().N(); N != `1` {
 		t.Errorf("%s failed; want '%s', got '%s'", t.Name(), `1`, N)
 		return
 	}
@@ -498,8 +551,8 @@ func TestRegistrations(t *testing.T) {
 	regs.SetSpatialH()
 	regs.SetSpatialV(true)
 
-	if !regs.Contains(o1) {
-		t.Errorf("%s failed; '%s' not found", t.Name(), o1)
+	if !regs.Contains(`2`) {
+		t.Errorf("%s failed; '%s' not found", t.Name(), o2)
 		return
 	}
 

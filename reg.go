@@ -51,12 +51,12 @@ Registrations contains slices of [Registration] instances.
 type Registrations []*Registration
 
 /*
-Get returns an instance of *[Registration] matching the input numeric OID,
-or a zero instance if not found.
+Get returns an instance of *[Registration] matching the input number form
+string value, or a zero instance if not found.
 */
-func (r Registrations) Get(oid string) (reg *Registration) {
+func (r Registrations) Get(n string) (reg *Registration) {
 	for i := 0; i < len(r); i++ {
-		if r[i].R_X680.R_DotNot == oid {
+		if r[i].R_X680.R_N == n {
 			reg = r[i]
 			break
 		}
@@ -66,11 +66,80 @@ func (r Registrations) Get(oid string) (reg *Registration) {
 }
 
 /*
-Contains returns a Boolean value indicative of whether an instance of
-*[Registration] matching the input numeric OID was found.
+Walk returns an instance of *[Registration] following an attempt to traverse
+the receiver instance using the input dot notation string value. A zero
+instance is returned if not found.
 */
-func (r Registrations) Contains(oid string) bool {
-	return !r.Get(oid).IsZero()
+func (r *Registration) Walk(id any) (reg *Registration) {
+	var o []string
+	switch tv := id.(type) {
+	case string:
+		o = split(trimL(tv, `.`), `.`)
+	case []string:
+		if len(tv) == 0 {
+			reg = r
+			return
+		}
+		o = tv
+	default:
+		return
+	}
+
+	if top := o[0]; top == r.X680().N() {
+		if len(o) > 0 {
+			sub := r.Children().Get(o[1])
+			reg = sub.Walk(o[2:])
+		}
+	} else if sub := r.Children().Get(o[0]); !sub.IsZero() {
+		reg = sub.Walk(o[1:])
+	}
+
+	return
+}
+
+/*
+Allocate will traverse the provided dot notation string value and allocate
+each sub arc along the way, assigning an X.680 Number Form following child
+initialization.
+*/
+func (r *Registration) Allocate(id any) {
+	var o []string
+	switch tv := id.(type) {
+	case string:
+		o = split(trimL(tv, `.`), `.`)
+	case []string:
+		if len(tv) == 0 {
+			return
+		}
+		o = tv
+	default:
+		return
+	}
+
+	if top := o[0]; top == r.X680().N() {
+		if len(o) == 1 {
+			return
+		}
+		sub := r.Children().Get(o[1])
+		if sub.IsZero() {
+			sub = r.NewChild(o[1], ``)
+		}
+		sub.Allocate(o[1:])
+	} else if !r.IsZero() {
+		r.X680().SetN(o[0])
+		if len(o) > 1 {
+			sub := r.NewChild(o[1], ``)
+			sub.Allocate(o[1:])
+		}
+	}
+}
+
+/*
+Contains returns a Boolean value indicative of whether an instance of
+*[Registration] matching the input number form was found.
+*/
+func (r Registrations) Contains(n string) bool {
+	return !r.Get(n).IsZero()
 }
 
 /*
