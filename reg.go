@@ -50,6 +50,112 @@ Registrations contains slices of [Registration] instances.
 type Registrations []*Registration
 
 /*
+Get returns an instance of *[Registration] matching the input numeric OID,
+or a zero instance if not found.
+*/
+func (r Registrations) Get(oid string) (reg *Registration) {
+	for i := 0; i < len(r); i++ {
+		if r[i].R_X680.R_DotNot == oid {
+			reg = r[i]
+			break
+		}
+	}
+
+	return
+}
+
+/*
+Contains returns a Boolean value indicative of whether an instance of
+*[Registration] matching the input numeric OID was found.
+*/
+func (r Registrations) Contains(oid string) bool {
+	return !r.Get(oid).IsZero()
+}
+
+/*
+Less returns a Boolean value indicative of whether the slice at index
+i is deemed to be less than the slice at j in the context of ordering.
+
+This method is intended to satisfy the func(int,int) bool signature
+required by [sort.Interface].
+
+See also [Stack.SetLessFunc] method for a means of specifying instances
+of this function.
+
+If no custom closure was assigned, the package-default closure is used,
+which evaluates the string representation of values in order to conduct
+alphabetical sorting. This means that both i and j must reference slice
+values in one of the following states:
+
+  - Type of slice instance must have its own String method
+  - Value is a go primitive, such as a string or int
+
+Equal values return false, as do zero string values.
+*/
+func (r Registrations) Less(i, j int) (less bool) {
+	if len(r) <= i || len(r) <= j {
+		return
+	}
+
+	S1 := r[i]
+	S2 := r[j]
+
+	if S1.R_X680 == nil || S2.R_X680 == nil {
+		return
+	}
+
+	// avoid needless initialization
+	N1 := S1.R_X680.R_N
+	N2 := S2.R_X680.R_N
+
+	if N1 == "" || N2 == "" {
+		return
+	}
+
+	bint1, ok1 := atobig(N1)
+	bint2, ok2 := atobig(N2)
+
+	if ok1 && ok2 {
+		less = bint1.Cmp(bint2) == -1
+	}
+
+	return
+}
+
+/*
+Push appends the non-zero input *[Registration] instance to the receiver
+slice instance.
+*/
+func (r *Registrations) Push(reg *Registration) {
+	if !structEmpty(reg) {
+		*r = append(*r, reg)
+	}
+}
+
+func (r Registrations) Len() int {
+	return len(r)
+}
+
+/*
+Swap implements the func(int,int) signature required by the [sort.Interface]
+signature. The result is the swapping of the specified receiver slice indices.
+*/
+func (r *Registrations) Swap(i, j int) {
+	L := r.Len()
+	if (-1 < i && i < L) && (-1 < j && j < L) && i != j {
+		(*r)[i], (*r)[j] = (*r)[j], (*r)[i]
+	}
+}
+
+/*
+SortByNumberForm executes [sort.Stable] to sort the contents of the receiver
+slice instance according to NumberForm magnitude, ordered lowest to highest.
+*/
+func (r *Registrations) SortByNumberForm() {
+	stabSort(r)
+}
+
+/*
 IsZero returns a Boolean value indicative of a nil receiver state.
 */
 func (r *Registration) IsZero() bool {

@@ -5,6 +5,7 @@ import (
 	"io"
 	"math/big"
 	"reflect"
+	"sort"
 	"strconv"
 	"strings"
 	"unicode"
@@ -35,6 +36,7 @@ var (
 	trimL      func(string, string) string         = strings.TrimLeft
 	trimR      func(string, string) string         = strings.TrimRight
 	replaceAll func(string, string, string) string = strings.ReplaceAll
+	stabSort   func(sort.Interface)                = sort.Stable
 
 	isLetter func(rune) bool = unicode.IsLetter
 	isDigit  func(rune) bool = unicode.IsDigit
@@ -237,6 +239,14 @@ func assertTTL(ttl any) (t int) {
 		t, _ = atoi(tv)
 	case int:
 		t = tv
+	}
+
+	return
+}
+
+func atobig(n string) (bint *big.Int, ok bool) {
+	if isNumber(n) {
+		bint, ok = big.NewInt(0).SetString(n, 10)
 	}
 
 	return

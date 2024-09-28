@@ -444,6 +444,63 @@ func TestRegistration_codecov(t *testing.T) {
 	}
 }
 
+func TestRegistrations(t *testing.T) {
+	var regs Registrations
+
+	regs.Less(1, 2)
+	regs.Swap(1, 2)
+	regs.Push(&Registration{})
+
+	nreg1 := myDedicatedProfile.NewRegistration()
+	nreg2 := myDedicatedProfile.NewRegistration()
+
+	o1 := `1.3.6.1.4.1.56521.999.18.1`
+	o2 := `1.3.6.1.4.1.56521.999.18.2`
+
+	nreg1.SetDN(`n=1,n=18,n=999,n=56521,n=1,n=4,n=1,n=6,n=3,n=1,ou=Registrations,o=rA`)
+	nreg1.X680().SetDotNotation(o1)
+	nreg1.X680().SetN(`1`)
+
+	nreg2.SetDN(`n=2,n=18,n=999,n=56521,n=1,n=4,n=1,n=6,n=3,n=1,ou=Registrations,o=rA`)
+	nreg2.X680().SetDotNotation(o2)
+	nreg2.X680().SetN(`2`)
+
+	regs.Push(nreg2) // ordered incorrectly
+	regs.Push(nreg1)
+
+	if L := regs.Len(); L != 2 {
+		t.Errorf("%s failed; want '%d', got '%d'", t.Name(), 2, L)
+		return
+	}
+
+	regs.SortByNumberForm() // reorder
+	if N := regs.Get(o1).X680().N(); N != `1` {
+		t.Errorf("%s failed; want '%s', got '%s'", t.Name(), `1`, N)
+		return
+	}
+
+	if !regs.Contains(o1) {
+		t.Errorf("%s failed; '%s' not found", t.Name(), o1)
+		return
+	}
+
+	// codecov
+	regs = append(regs, &Registration{})
+	regs = append(regs, &Registration{})
+
+	if regs.Less(2, 3) {
+		t.Errorf("%s failed: want false, got true", t.Name())
+		return
+	}
+
+	regs = append(regs, &Registration{R_X680: &X680{}})
+	regs = append(regs, &Registration{R_X680: &X680{}})
+
+	if regs.Less(4, 5) {
+		t.Errorf("%s failed: want false, got true", t.Name())
+	}
+}
+
 func bogusRegistration_codecov() error {
 	_ = errorf(MismatchedLeafErr)
 	_ = errorf("MismatchedLeafErr")
