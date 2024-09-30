@@ -167,20 +167,11 @@ func (r *Registration) Allocate(oid any, ident ...string) (reg *Registration) {
 		nanfs = tv
 	}
 
-	var _reg *Registration
 	if len(nanfs) > 0 {
-		if _reg.IsZero() {
-			_reg = r.allocateASN1(nanfs)
-		}
-		reg = _reg
-
+		reg = r.allocateASN1(nanfs)
 		nanfs = nanfs[1:]
 	} else if len(o) > 0 {
-		if _reg.IsZero() {
-			_reg = r.allocateDotNot(o, ident...)
-		}
-		reg = _reg
-
+		reg = r.allocateDotNot(o, ident...)
 		o = o[1:]
 	}
 
