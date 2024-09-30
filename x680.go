@@ -293,11 +293,13 @@ func (r *X680) marshal(meth func(any) error) (err error) {
 }
 
 func (r *X680) specialHandling(tag string, value any) {
-	switch lc(tag) {
-	case `dotnotation`:
-		r.dotNotationHandler(value.(string))
-	case `asn1notation`:
-		r.asn1NotationHandler(value.(string))
+	if value != nil && !r.IsZero() {
+		switch lc(tag) {
+		case `dotnotation`:
+			r.dotNotationHandler(value.(string))
+		case `asn1notation`:
+			r.asn1NotationHandler(value.(string))
+		}
 	}
 }
 
