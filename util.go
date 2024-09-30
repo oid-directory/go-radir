@@ -657,3 +657,38 @@ func rootClass(n int) (class string) {
 
 	return
 }
+
+func nanfToSlice(nanf string) (slice []string) {
+	if isNumber(nanf) {
+		slice = []string{``, nanf}
+	} else if isIdentifier(nanf) {
+		switch nanf {
+		case `itu-t`:
+			slice = []string{nanf, `0`}
+		case `iso`:
+			slice = []string{nanf, `1`}
+		case `joint-iso-itu-t`:
+			slice = []string{nanf, `2`}
+		}
+	} else {
+		if idx := idxr(nanf, '('); idx != -1 {
+			id := nanf[:idx]
+			rest := nanf[idx+1:]
+			if idxe := idxr(rest, ')'); idxe != -1 {
+				num := rest[:idxe]
+				slice = []string{id, num}
+			}
+		}
+	}
+
+	return
+}
+
+func mknanf(in []string) (try string) {
+	if in[0] == "" {
+		try = in[1]
+	} else {
+		try = in[0] + `(` + in[1] + `)`
+	}
+	return
+}

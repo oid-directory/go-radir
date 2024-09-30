@@ -269,6 +269,8 @@ func ExampleASN1NotationToMulti_sixValuesFromOne() {
 
 func TestRegistration_Allocate(t *testing.T) {
 	prof := myDedicatedProfile
+
+	// Create the ISO arc
 	iso := prof.NewRegistration(true)
 	iso.SetDN(`n=1,ou=Registrations,o=rA`)
 	iso.X680().SetN(`1`)
@@ -276,20 +278,63 @@ func TestRegistration_Allocate(t *testing.T) {
 	iso.X680().SetIRI(`/ISO`)
 	iso.X660().SetUnicodeValue(`ISO`)
 
-	iso.Allocate(`1.3.6.1.4.1.56521`)
-	jesse := iso.Walk(`1.3.6.1.4.1.56521`)
-	if n := jesse.X680().N(); n != `56521` {
-		t.Errorf("%s failed: want 56521, got %s", t.Name(), n)
-		return
+	for _, str := range [][]string{
+		{`ASN.1`,
+			`{iso(1)
+			identified-organization(3)	
+			dod(6)
+			internet(1)
+			private(4)
+			enterprise(1)
+			56521}`},
+		{`Dot`, `1.3.6.1.4.1.56521`},
+	} {
+		iso.Allocate(str[1])
+		if walked := iso.Walk(str[1]); walked.X680().N() != `56521` {
+			t.Errorf("%s [%s walk] failed: want 56521, got '%s'",
+				t.Name(), str[0], walked.X680().N())
+			return
+		}
 	}
 
-	jesse.Allocate([]string{})
-	jesse.Allocate(nil)
+	iso.allocateDotNot([]string{`1`, `3`, `6`, `1`, `5`, `5`, `7`, `2`, `0`}, `reserved`)
+	iso.allocateDotNot([]string{`1`}, `reserved`)
+	iso.allocateDotNot([]string{`1`, `2`}, `reserved`)
+	iso.allocateDotNot([]string{`1`, `2`, `3`}, `reserved`)
+	iso.allocateASN1([][]string{{`iso`, `1`}})
+	nanfToSlice(`iso`)
+	nanfToSlice(`itu-t`)
+	nanfToSlice(`joint-iso-itu-t`)
+	iso.Allocate([]string{})
+	iso.Allocate([]string{"3"})
+	iso.Allocate([][]string{})
+	iso.Allocate(`0.0.4`)
+	iso.Allocate([][]string{
+		{"identified-organization", "3"},
+		{"dod", "6"}})
+	iso.Allocate(nil)
 
+	// Create the ITU-T arc
 	itu := prof.NewRegistration(true)
-	itu.Allocate(`0.2`)
-	if n := itu.X680().N(); n != `0` {
-		t.Errorf("%s failed: want 0, got %s", t.Name(), n)
+	itu.SetDN(`n=0,ou=Registrations,o=rA`)
+	itu.X680().SetN(`0`)
+	itu.X680().SetASN1Notation(`{itu-t(0)}`)
+	itu.X680().SetIRI(`/ITU-T`)
+	itu.X660().SetUnicodeValue(`ITU-T`)
+
+	//memberID := `{itu-t}`
+	//memberN := `0`
+
+	for _, str := range [][]string{
+		{`ASN.1`, `{itu-t(0) member-body(2)}`},
+		{`ASN.1`, `{itu-t(0) 2}`},
+		{`Dot`, `0.2`},
+	} {
+		itu.Allocate(str[1])
+		if walked := itu.Walk(str[1]); walked.X680().N() != `2` {
+			t.Errorf("%s [%s walk] failed: want 2, got '%s'",
+				t.Name(), str[0], walked.X680().N())
+		}
 	}
 }
 
@@ -310,6 +355,9 @@ func TestRegistration_Walk(t *testing.T) {
 	dod.X680().SetIRI(`/ISO/Identified-Organization/6`)
 
 	dodOID := `1.3.6`
+
+	var none *Registration
+	none.walkASN1(nil)
 
 	defense := iso.Walk(dodOID)
 	if defense.X680().DotNotation() != dodOID {

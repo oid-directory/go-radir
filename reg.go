@@ -56,7 +56,11 @@ string value, or a zero instance if not found.
 */
 func (r Registrations) Get(n string) (reg *Registration) {
 	for i := 0; i < len(r); i++ {
-		if r[i].R_X680.R_N == n {
+		elem := r[i].R_X680
+		if elem.R_N == n ||
+			elem.R_NaNF == n ||
+			elem.R_ASN1Not == n ||
+			elem.R_DotNot == n {
 			reg = r[i]
 			break
 		}
@@ -71,27 +75,60 @@ the receiver instance using the input dot notation string value. A zero
 instance is returned if not found.
 */
 func (r *Registration) Walk(id any) (reg *Registration) {
-	var o []string
 	switch tv := id.(type) {
 	case string:
-		o = split(trimL(tv, `.`), `.`)
-	case []string:
-		if len(tv) == 0 {
-			reg = r
-			return
+		if _, a, err := cleanASN1(tv); err != nil {
+			reg = r.walkN(split(trimL(tv, `.`), `.`))
+		} else {
+			nanfs := make([][]string, 0)
+			for i := 0; i < len(a); i++ {
+				nanfs = append(nanfs, nanfToSlice(a[i]))
+			}
+			reg = r.walkASN1(nanfs)
 		}
-		o = tv
-	default:
 		return
 	}
 
-	if top := o[0]; top == r.X680().N() {
-		if len(o) > 0 {
-			sub := r.Children().Get(o[1])
-			reg = sub.Walk(o[2:])
+	return
+}
+
+func (r *Registration) walkASN1(o [][]string) (reg *Registration) {
+	if r.IsZero() {
+		return
+	}
+
+	nanf := mknanf(o[0])
+	nf := o[0][1]
+
+	if nanf == r.X680().NameAndNumberForm() || nf == r.X680().N() {
+		if len(o) == 1 {
+			reg = r
+		} else {
+			reg = r.walkASN1(o[1:])
 		}
-	} else if sub := r.Children().Get(o[0]); !sub.IsZero() {
-		reg = sub.Walk(o[1:])
+	} else {
+		kids := r.Children()
+		for _, rg := range []*Registration{
+			kids.Get(nanf),
+			kids.Get(nf),
+		} {
+			if !rg.IsZero() {
+				reg = rg.walkASN1(o)
+				break
+			}
+		}
+	}
+
+	return
+}
+
+func (r *Registration) walkN(o []string) (reg *Registration) {
+	if top := o[0]; top == r.X680().N() {
+		if o = o[1:]; len(o) > 0 {
+			reg = r.Children().Get(o[0]).walkN(o)
+		} else {
+			reg = r
+		}
 	}
 
 	return
@@ -102,36 +139,102 @@ Allocate will traverse the provided dot notation string value and allocate
 each sub arc along the way, assigning an X.680 Number Form following child
 initialization.
 */
-func (r *Registration) Allocate(id any) {
+func (r *Registration) Allocate(oid any, ident ...string) (reg *Registration) {
 	var o []string
-	switch tv := id.(type) {
+	var nanfs [][]string
+
+	switch tv := oid.(type) {
 	case string:
-		o = split(trimL(tv, `.`), `.`)
+		if _, a, err := cleanASN1(tv); err != nil {
+			o = split(trimL(tv, `.`), `.`)
+		} else {
+			nanfs = make([][]string, 0)
+			for i := 0; i < len(a); i++ {
+				nanfs = append(nanfs, nanfToSlice(a[i]))
+			}
+		}
 	case []string:
-		if len(tv) == 0 {
+		if len(tv) == 1 {
+			reg = r
 			return
 		}
 		o = tv
-	default:
-		return
+	case [][]string:
+		if len(tv) == 1 {
+			reg = r
+			return
+		}
+		nanfs = tv
+	}
+
+	var _reg *Registration
+	if len(nanfs) > 0 {
+		if _reg.IsZero() {
+			_reg = r.allocateASN1(nanfs)
+		}
+
+		nanfs = nanfs[1:]
+	} else if len(o) > 0 {
+		if _reg.IsZero() {
+			_reg = r.allocateDotNot(o, ident...)
+		}
+
+		o = o[1:]
+	}
+
+	return
+}
+
+func (r *Registration) allocateDotNot(o []string, ident ...string) (reg *Registration) {
+	var identifier string
+	if len(ident) > 0 {
+		if isIdentifier(ident[0]) {
+			identifier = ident[0]
+		}
 	}
 
 	if top := o[0]; top == r.X680().N() {
 		if len(o) == 1 {
+			reg = r.Allocate(o[1:], identifier)
 			return
 		}
-		sub := r.Children().Get(o[1])
-		if sub.IsZero() {
-			sub = r.NewChild(o[1], ``)
-		}
-		sub.Allocate(o[1:])
-	} else if !r.IsZero() {
-		r.X680().SetN(o[0])
-		if len(o) > 1 {
-			sub := r.NewChild(o[1], ``)
-			sub.Allocate(o[1:])
+		o = o[1:]
+
+		if reg = r.Children().Get(o[0]); reg.IsZero() {
+			reg = r.NewChild(o[0], identifier).Allocate(o, identifier)
+		} else {
+			reg = reg.Allocate(o[1:], identifier)
 		}
 	}
+
+	return
+}
+
+func (r *Registration) allocateASN1(o [][]string) (reg *Registration) {
+	if top := o[0][1]; top == r.X680().N() {
+		id := o[0][0]
+		if r.X680().Identifier() == "" {
+			r.X680().SetIdentifier(id)
+		}
+		if r.X680().NameAndNumberForm() == "" {
+			r.X680().SetNameAndNumberForm(id + `(` + top + `)`)
+		}
+		if len(o) == 1 {
+			reg = r.Allocate(o[1:])
+			reg.X680().SetIdentifier(id)
+			return
+		}
+
+		o = o[1:]
+
+		if sub := r.Children().Get(o[0][1]); sub.IsZero() {
+			reg = r.NewChild(o[0][1], o[0][0]).Allocate(o)
+		} else {
+			reg = sub.Allocate(o[1:])
+		}
+	}
+
+	return
 }
 
 /*
