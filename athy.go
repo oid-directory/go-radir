@@ -565,6 +565,59 @@ func (r *Registrants) Marshal(profile *DITProfile, meths ...func(any) error) (er
 }
 
 /*
+IsZero returns a Boolean value indicative of a nil receiver state.
+*/
+func (r *Registrants) IsZero() bool {
+	return r == nil
+}
+
+/*
+Push appends a non-zero instance of *[Registrant] to the receiver instance.
+*/
+func (r *Registrants) Push(ath *Registrant) {
+	if !r.IsZero() && !ath.IsZero() {
+		*r = append(*r, ath)
+	}
+}
+
+/*
+Len returns the integer length of the receiver instance.
+*/
+func (r Registrants) Len() int {
+	return len(r)
+}
+
+/*
+Get returns an instance of *[Registrant] following a search for a matching
+"[registrantID]". Case is significant in the matching process. A zero
+instance is returned if not found.
+
+[registrantID]: https://datatracker.ietf.org/doc/html/draft-coretta-oiddir-schema#section-2.3.34
+*/
+func (r Registrants) Get(id string) (ath *Registrant) {
+	for i := 0; i < r.Len(); i++ {
+		if id == r[i].ID() {
+			ath = r[i]
+			break
+		}
+	}
+
+	return
+}
+
+/*
+Contains returns a Boolean value indicative of a positive match between
+the input "[registrantID]" value and one of the *[Registrant] instances
+in the receiver instance. Case is significant in the matching process. A
+zero instance is returned if not found.
+
+[registrantID]: https://datatracker.ietf.org/doc/html/draft-coretta-oiddir-schema#section-2.3.34
+*/
+func (r Registrants) Contains(id string) bool {
+	return !r.Get(id).IsZero()
+}
+
+/*
 for test streamlining only; no practical use otherwise.
 */
 type authority interface {

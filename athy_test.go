@@ -170,6 +170,13 @@ func TestAuthority_codecov(t *testing.T) {
 	reg.TTL()
 
 	regs := Registrants{reg}
+	regs.Len()
+	regs.Push(&Registrant{R_Id: `meat`})
+	regs.Contains(`meat`)
+	regs.Contains(`meats`)
+	regs.Get(`meat`)
+	regs.Get(`meats`)
+	regs.Len()
 	regs.Unmarshal()
 	regs.Marshal(&DITProfile{}, ffunk)
 	regs.Marshal(myCombinedProfile, ffunk)
