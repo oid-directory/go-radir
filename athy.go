@@ -51,6 +51,13 @@ func (r *Registrant) DN() (dn string) {
 SetDN assigns the provided string value to the receiver instance.
 */
 func (r *Registrant) SetDN(args ...any) error {
+	if len(args) == 1 {
+		if _, ok := args[0].(func(...any) (any, error)); ok {
+			args = []any{``, args[0]}
+			return writeFieldByTag(`dn`, r.SetDN, r, args...)
+		}
+	}
+
 	return writeFieldByTag(`dn`, r.SetDN, r, args...)
 }
 

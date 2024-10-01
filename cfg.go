@@ -106,6 +106,8 @@ type DITProfile struct {
 
 	// Make a note of our dedicated type policy (draft or RFC).
 	r_alt_types bool
+
+	r_bsel [2]int
 }
 
 /*
@@ -388,7 +390,65 @@ func (r *DITProfile) UseAltAuthorityTypes(alt bool) {
 }
 
 /*
-RegistrationBase returns the Nth "[rARegistrationBase]" value. If no index
+RegistrationTarget sets the preferred Registration Base within the receiver.
+
+Subsequent calls of [DITProfile.RegistrationBase] will return the string
+representation of the selected Registration Base DN. Note that this method
+has no effect when only a single such base exists.
+*/
+func (r *DITProfile) RegistrationTarget(base int) {
+	if !r.IsZero() {
+		r.r_bsel[0] = base
+	}
+}
+
+/*
+RegistrantBase returns the string representation of the Registration Base
+DN currently selected within the receiver instance.
+*/
+func (r DITProfile) RegistrationBase() (base string) {
+	if !r.IsZero() {
+		if r.NumRegistrationBase() == 1 {
+			base = r.registrationBase()
+		} else {
+			base = r.registrationBase(r.r_bsel[0])
+		}
+	}
+
+	return
+}
+
+/*
+RegistrantTarget sets the preferred Registrant Base within the receiver.
+
+Subsequent calls of [DITProfile.RegistrantBase] will return the string
+representation of the selected Registrant Base DN. Note that this method
+has no effect when only a single such base exists.
+*/
+func (r *DITProfile) RegistrantTarget(base int) {
+	if !r.IsZero() {
+		r.r_bsel[1] = base
+	}
+}
+
+/*
+RegistrantBase returns the string representation of the Registrant Base
+DN currently selected within the receiver instance.
+*/
+func (r DITProfile) RegistrantBase() (base string) {
+	if !r.IsZero() {
+		if r.NumRegistrantBase() == 1 {
+			base = r.registrantBase()
+		} else {
+			base = r.registrantBase(r.r_bsel[1])
+		}
+	}
+
+	return
+}
+
+/*
+registrationBase returns the Nth "[rARegistrationBase]" value. If no index
 value is provided, the 0th slice will be returned.
 
 Any negative value results in a zero return value.
@@ -400,7 +460,7 @@ If no "[rARegistrationBase]" slices are present, a zero string is returned.
 
 [rARegistrationBase]: https://datatracker.ietf.org/doc/html/draft-coretta-oiddir-schema#section-2.3.95
 */
-func (r *DITProfile) RegistrationBase(idx ...int) (base string) {
+func (r *DITProfile) registrationBase(idx ...int) (base string) {
 	L := r.NumRegistrationBase()
 	if L == 0 {
 		return
@@ -433,8 +493,10 @@ SetRegistrationBase assigns input value b as an "[rARegistrationBase]" instance.
 [rARegistrationBase]: https://datatracker.ietf.org/doc/html/draft-coretta-oiddir-schema#section-2.3.95
 */
 func (r *DITProfile) SetRegistrationBase(b string) {
-	if !strInSlice(b, r.R_RegBase) && len(b) > 0 {
-		r.R_RegBase = append(r.R_RegBase, b)
+	if !r.IsZero() {
+		if !strInSlice(b, r.R_RegBase) && len(b) > 0 {
+			r.R_RegBase = append(r.R_RegBase, b)
+		}
 	}
 }
 
@@ -444,12 +506,16 @@ instances present within within the receiver instance.
 
 [rARegistrationBase]: https://datatracker.ietf.org/doc/html/draft-coretta-oiddir-schema#section-2.3.95
 */
-func (r *DITProfile) NumRegistrationBase() int {
-	return len(r.R_RegBase)
+func (r *DITProfile) NumRegistrationBase() (l int) {
+	if !r.IsZero() {
+		l = len(r.R_RegBase)
+	}
+
+	return
 }
 
 /*
-RegistrantBase returns the Nth "[rARegistrantBase]" value. If no index value
+registrantBase returns the Nth "[rARegistrantBase]" value. If no index value
 is provided, the 0th slice will be returned.
 
 Any negative value results in a zero return value.
@@ -461,7 +527,7 @@ If no "[rARegistrantBase]" slices are present, a zero string is returned.
 
 [rARegistrantBase]: https://datatracker.ietf.org/doc/html/draft-coretta-oiddir-schema#section-2.3.96
 */
-func (r *DITProfile) RegistrantBase(idx ...int) (base string) {
+func (r *DITProfile) registrantBase(idx ...int) (base string) {
 	L := r.NumRegistrantBase()
 	if L == 0 {
 		return
@@ -494,8 +560,10 @@ SetRegistrantBase assigns input value b as an "[rARegistrantBase]" instance.
 [rARegistrantBase]: https://datatracker.ietf.org/doc/html/draft-coretta-oiddir-schema#section-2.3.96
 */
 func (r *DITProfile) SetRegistrantBase(b string) {
-	if !strInSlice(b, r.R_AthyBase) && len(b) > 0 {
-		r.R_AthyBase = append(r.R_AthyBase, b)
+	if !r.IsZero() {
+		if !strInSlice(b, r.R_AthyBase) && len(b) > 0 {
+			r.R_AthyBase = append(r.R_AthyBase, b)
+		}
 	}
 }
 
@@ -505,8 +573,12 @@ present within within the receiver instance.
 
 [rARegistrantBase]: https://datatracker.ietf.org/doc/html/draft-coretta-oiddir-schema#section-2.3.96
 */
-func (r *DITProfile) NumRegistrantBase() int {
-	return len(r.R_AthyBase)
+func (r *DITProfile) NumRegistrantBase() (l int) {
+	if !r.IsZero() {
+		l = len(r.R_AthyBase)
+	}
+
+	return
 }
 
 /*
@@ -717,10 +789,10 @@ func (r *DITProfile) suffixBaseEqual(dn string, t int) (index int) {
 		var funk func(...int) string
 		if t == 0 {
 			RL = r.NumRegistrationBase()
-			funk = r.RegistrationBase
+			funk = r.registrationBase
 		} else {
 			RL = r.NumRegistrantBase()
-			funk = r.RegistrantBase
+			funk = r.registrantBase
 		}
 
 		for i := 0; i < RL; i++ {

@@ -385,6 +385,7 @@ func getFieldByNameTag(instance any, tag string) (reflect.Value, error) {
 }
 
 func writeFieldByTag(tag string, funk func(...any) error, instance any, args ...any) error {
+
 	X, Y, err := chkSetterInput(args...)
 	if err != nil {
 		return err

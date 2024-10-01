@@ -6,6 +6,17 @@ import (
 	"time"
 )
 
+func TestRegistrantDNGenerator(t *testing.T) {
+	RegistrantDNGenerator()
+	RegistrantDNGenerator(nil, nil)
+	RegistrantDNGenerator(rune(10))
+	RegistrantDNGenerator(``, ``)
+
+	reg := myDedicatedProfile.NewRegistrant()
+	reg.SetDN(`test`)
+	RegistrantDNGenerator(reg)
+}
+
 func TestASN1NotationToMulti(t *testing.T) {
 	for _, bogus := range []string{
 		`{iso identified-organization(3)`,

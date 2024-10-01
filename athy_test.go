@@ -37,22 +37,23 @@ func ExampleRegistrant_LDIF() {
 
 /*
 This example demonstrates use of a [GetOrSetFunc] instance to write the
-input value to the receiver. For simplicity, this example merely introduces
-a lowercase-normalizer as our [GetOrSetFunc].
+input value to the receiver including a randomly-generated "[registrantID]".
 
 This is contrary to use of [Registrant.DNGetFunc], which only alters the
 presentation value, not the receiver field value.
+
+[registrantID]: https://datatracker.ietf.org/doc/html/draft-coretta-oiddir-schema#section-2.3.34
 */
 func ExampleRegistrant_SetDN_withSetOrGetFunc() {
 	regi := myDedicatedProfile.NewRegistrant()
-	gosf := func(x ...any) (any, error) {
-		ret := x[0].(string)
-		ret = strings.ToLower(ret)
-		return ret, nil
+
+	if err := regi.SetDN(RegistrantDNGenerator); err != nil {
+		fmt.Println(err)
+		return
 	}
-	regi.SetDN("registrantID=EB3ED0aD39f,ou=Registrants,o=rA", gosf)
-	fmt.Println(regi.DN())
-	// Output: registrantid=eb3ed0ad39f,ou=registrants,o=ra
+
+	fmt.Printf("Random registrant DN generated: %d bytes\n", len(regi.DN()))
+	// Output: Random registrant DN generated: 43 bytes
 }
 
 /*

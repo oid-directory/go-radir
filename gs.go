@@ -7,7 +7,10 @@ as well as to offer practical examples regarding the creation of such
 CUSTOM function instances by the user.
 */
 
-import "time"
+import (
+	"math/rand"
+	"time"
+)
 
 /*
 GetOrSetFunc is a first class (closure) function signature that users
@@ -54,13 +57,62 @@ issues.
 */
 type GetOrSetFunc func(...any) (any, error)
 
-const tfmt = `20060102150405`
+const (
+	tfmt       = `20060102150405`
+	randChars  = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	randIDSize = 10
+)
 
 var (
 	since func(time.Time) time.Duration = time.Since
 	until func(time.Time) time.Duration = time.Until
 	now   func() time.Time              = time.Now
 )
+
+/*
+RegistrantDNGenerator returns an instance of string alongside an error.
+
+This closure function is intended for use as a secondary [GetOrSetFunc]
+argument to the [Registrant.SetDN] method, allowing automatic use of the
+"[registrantID]" attribute type with a random 10-byte alphanumeric value
+for assignment to the indicated *[Registrant] instance.
+
+The currently-selected [DITProfile.RegistrantBase] value will be used to
+terminate the output DN.  See the [DITProfile.RegistrantTarget] method
+for a means of selecting the appropriate base prior to use of this closure
+function.
+
+Use of this function in such a manner is only meaningful in cases where
+the [Dedicated Registrants Policy] is in effect.
+
+This function is not intended to be executed directly by a user.
+
+[Dedicated Registrants Policy]: https://datatracker.ietf.org/doc/html/draft-coretta-oiddir-radit#section-3.2.1.1.1
+[registrantID]: https://datatracker.ietf.org/doc/html/draft-coretta-oiddir-schema#section-2.3.34
+*/
+func RegistrantDNGenerator(args ...any) (gen any, err error) {
+	if len(args) < 2 {
+		err = NilArgumentsErr
+		return
+	}
+
+	r, ok := args[1].(*Registrant)
+	if !ok {
+		err = NilRegistrantErr
+		return
+	}
+
+	base := `,` + r.DITProfile().RegistrantBase()
+
+	id := make([]byte, randIDSize)
+	for i := range id {
+		id[i] = randChars[rand.Int63()%int64(len(randChars))]
+	}
+
+	gen = string(`registrantID=` + string(id) + base)
+
+	return
+}
 
 /*
 ASN1NotationToMulti returns an instance of []string alongside an error.
@@ -664,7 +716,7 @@ func DNToDotNot3D(args ...any) (id any, err error) {
 		err = InvalidDNErr
 		return
 	}
-	base := lc(duaConf.RegistrationBase(bidx))
+	base := lc(duaConf.RegistrationBase())
 	component := split(trimR(D, `,`+base), `,`)
 
 	var _dot []string

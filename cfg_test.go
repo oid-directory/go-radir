@@ -5,6 +5,24 @@ import (
 	"testing"
 )
 
+func ExampleDITProfile_RegistrationBase_multi() {
+	prof := myDedicatedProfile
+	prof.SetRegistrationBase(`ou=Alt,ou=Base,dc=example,dc=com`)
+	prof.RegistrationTarget(1)
+	fmt.Println(prof.RegistrationBase())
+	// Output: ou=Alt,ou=Base,dc=example,dc=com
+	prof.RegistrationTarget(0)
+}
+
+func ExampleDITProfile_RegistrantBase_multi() {
+	prof := myDedicatedProfile
+	prof.SetRegistrantBase(`ou=Registrants,ou=Alt,dc=example,dc=com`)
+	prof.RegistrantTarget(1)
+	fmt.Println(prof.RegistrantBase())
+	// Output: ou=Registrants,ou=Alt,dc=example,dc=com
+	prof.RegistrantTarget(0)
+}
+
 /*
 This example demonstrates use of the [ProfileSettings.Keys] method to
 access slices of string values, each representing a key name found
@@ -145,11 +163,13 @@ func TestDITProfile_codecov(t *testing.T) {
 	var fx *DITProfile
 	fx.NewRegistrant()
 	fx.NewSubentry()
+	fx.registrationBase(-1)
+	fx.registrantBase(-1)
 	fx.AllowsRegistrants()
 	fx = new(DITProfile)
-	fx.RegistrationBase(13)
+	fx.RegistrationTarget(13)
 	fx.NumRegistrationBase()
-	fx.RegistrantBase(13)
+	fx.RegistrantTarget(13)
 	fx.NumRegistrantBase()
 	fx.Model()
 	fx.SetModel(ThreeDimensional)
@@ -167,12 +187,12 @@ func TestDITProfile_codecov(t *testing.T) {
 	fx.Mail(0)
 	fx.URI(0)
 
-	X.RegistrationBase(-1)
-	X.RegistrantBase(-1)
+	X.RegistrationTarget(-1)
+	X.RegistrantTarget(-1)
 	X.R_RegBase = []string{`blarg`}
 	X.R_AthyBase = []string{`blarg`}
-	X.RegistrationBase(-1)
-	X.RegistrantBase(-1)
+	X.RegistrationTarget(-1)
+	X.RegistrantTarget(-1)
 
 	D := &DUAConfig{R_DSE: X}
 	D.NumProfile()
@@ -181,6 +201,7 @@ func TestDITProfile_codecov(t *testing.T) {
 	D.Profile(0)
 	D = &DUAConfig{R_DSE: X, R_Profiles: []*DITProfile{X}}
 	E := &DUAConfig{R_Profiles: []*DITProfile{X}}
+
 	D.Profile(-1)
 	D.Profile(0).UseAltAuthorityTypes(true)
 	D.Profile(0)
