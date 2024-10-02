@@ -693,3 +693,51 @@ func mknanf(in []string) (try string) {
 	}
 	return
 }
+
+func isNumericOID(id string) bool {
+	if !isValidOIDPrefix(id) {
+		return false
+	}
+
+	var last rune
+	for i, c := range id {
+		switch {
+		case c == '.':
+			if last == c {
+				return false
+			} else if i == len(id)-1 {
+				return false
+			}
+			last = '.'
+		case ('0' <= c && c <= '9'):
+			last = c
+			continue
+		}
+	}
+
+	return true
+}
+
+func isValidOIDPrefix(id string) bool {
+	slices := split(id, `.`)
+	if len(slices) < 2 {
+		return false
+	}
+
+	root, err := atoi(slices[0])
+	if err != nil {
+		return false
+	}
+	if !(0 <= root && root <= 2) {
+		return false
+	}
+
+	var sub int
+	if sub, err = atoi(slices[1]); err != nil {
+		return false
+	} else if !(0 <= sub && sub <= 39) && root != 2 {
+		return false
+	}
+
+	return true
+}

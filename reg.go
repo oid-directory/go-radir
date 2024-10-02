@@ -55,9 +55,8 @@ Get returns an instance of *[Registration] matching the input number form
 string value, or a zero instance if not found.
 */
 func (r Registrations) Get(n string) (reg *Registration) {
-	for i := 0; i < len(r); i++ {
-		elem := r[i].R_X680
-		if elem.R_N == n ||
+	for i := 0; i < r.Len(); i++ {
+		if elem := r[i].R_X680; elem.R_N == n ||
 			elem.R_NaNF == n ||
 			elem.R_ASN1Not == n ||
 			elem.R_DotNot == n {
@@ -78,7 +77,9 @@ func (r *Registration) Walk(id any) (reg *Registration) {
 	switch tv := id.(type) {
 	case string:
 		if _, a, err := cleanASN1(tv); err != nil {
-			reg = r.walkN(split(trimL(tv, `.`), `.`))
+			if dot := trimL(tv, `.`); isNumericOID(dot) {
+				reg = r.walkN(split(dot, `.`))
+			}
 		} else {
 			nanfs := make([][]string, 0)
 			for i := 0; i < len(a); i++ {
@@ -145,6 +146,12 @@ func (r *Registration) Allocate(oid any, ident ...string) (reg *Registration) {
 
 	switch tv := oid.(type) {
 	case string:
+		// First just check to see if it is already allocated
+		if _reg := r.Walk(tv); !_reg.IsZero() {
+			reg = _reg
+			return
+		}
+
 		if _, a, err := cleanASN1(tv); err != nil {
 			o = split(trimL(tv, `.`), `.`)
 		} else {
@@ -154,14 +161,12 @@ func (r *Registration) Allocate(oid any, ident ...string) (reg *Registration) {
 			}
 		}
 	case []string:
-		if len(tv) == 1 {
-			reg = r
+		if len(tv) == 0 {
 			return
 		}
 		o = tv
 	case [][]string:
-		if len(tv) == 1 {
-			reg = r
+		if len(tv) == 0 {
 			return
 		}
 		nanfs = tv
@@ -169,10 +174,8 @@ func (r *Registration) Allocate(oid any, ident ...string) (reg *Registration) {
 
 	if len(nanfs) > 0 {
 		reg = r.allocateASN1(nanfs)
-		nanfs = nanfs[1:]
 	} else if len(o) > 0 {
 		reg = r.allocateDotNot(o, ident...)
-		o = o[1:]
 	}
 
 	return
@@ -186,17 +189,23 @@ func (r *Registration) allocateDotNot(o []string, ident ...string) (reg *Registr
 		}
 	}
 
-	if top := o[0]; top == r.X680().N() {
+	if o[0] == r.X680().N() {
 		if len(o) == 1 {
-			reg = r.Allocate(o[1:], identifier)
+			reg = r
 			return
 		}
-		o = o[1:]
 
+		o = o[1:]
 		if reg = r.Children().Get(o[0]); reg.IsZero() {
-			reg = r.NewChild(o[0], identifier).Allocate(o, identifier)
+			if len(o) == 1 {
+				reg = r.NewChild(o[0], identifier)
+			} else {
+				reg = r.NewChild(o[0], ``)
+				return
+			}
+			reg = reg.allocateDotNot(o, ident...)
 		} else {
-			reg = reg.Allocate(o[1:], identifier)
+			reg = reg.Allocate(o, ident...)
 		}
 	}
 
@@ -204,27 +213,27 @@ func (r *Registration) allocateDotNot(o []string, ident ...string) (reg *Registr
 }
 
 func (r *Registration) allocateASN1(o [][]string) (reg *Registration) {
-	if top := o[0][1]; top == r.X680().N() {
-		id := o[0][0]
-		if r.X680().Identifier() == "" {
-			r.X680().SetIdentifier(id)
-		}
-		if r.X680().NameAndNumberForm() == "" {
-			r.X680().SetNameAndNumberForm(id + `(` + top + `)`)
-		}
+	nanf := mknanf(o[0])
+	if o[0][1] == r.X680().N() || nanf == r.X680().NameAndNumberForm() {
 		if len(o) == 1 {
-			reg = r.Allocate(o[1:])
-			reg.X680().SetIdentifier(id)
+			reg = r
 			return
 		}
 
 		o = o[1:]
+		id := o[0][0]
+		nf := o[0][1]
 
-		if sub := r.Children().Get(o[0][1]); sub.IsZero() {
-			reg = r.NewChild(o[0][1], o[0][0]).Allocate(o)
-		} else {
-			reg = sub.Allocate(o[1:])
+		if reg = r.Children().Get(nf); reg.IsZero() {
+			reg = r.NewChild(nf, id)
+			if len(o) == 1 {
+				return
+			}
 		}
+		reg = reg.allocateASN1(o)
+		//} else {
+		//        reg = reg.Allocate(o)
+		//}
 	}
 
 	return
@@ -239,9 +248,34 @@ func (r Registrations) Contains(n string) bool {
 }
 
 /*
-SetSpatialH will link all X-Axis (Horizontal) spatial references
-according to the number form magnitude-ordered slice instances
-within the receiver.
+SetYAxes wraps [Registrations.SetYAxes] for convenient invocation against
+the underlying [Registration.Children] instance.
+*/
+func (r *Registration) SetYAxes(recursive ...bool) {
+	if !r.IsZero() {
+		r.Children().SetYAxes(recursive...)
+	}
+}
+
+/*
+SetXAxes wraps [Registrations.SetXAxes] for convenient invocation against
+the underlying [Registration.Children] instance.
+*/
+func (r *Registration) SetXAxes(recursive ...bool) {
+	if !r.IsZero() {
+		r.Children().SetXAxes(recursive...)
+	}
+}
+
+/*
+SetXAxes will link ALL X-Axis (Horizontal) spatial references according
+to the number form magnitude-ordered slice instances within the receiver.
+This method is merely a convenient alternative to manual (and tedious)
+X-Axis associations.
+
+The recursive variadic Boolean value indicates whether the request should
+span the entire progeny of X-Axis *[Registration] instances (downward),
+or if this request is limited only to the receiver.
 
 This process will result in attempting to set all of "[minArc]", "[maxArc]",
 "[leftArc]" and "[rightArc]". It will not set collective variants of these types.
@@ -249,19 +283,34 @@ This process will result in attempting to set all of "[minArc]", "[maxArc]",
 Note this operation has the potential to be convenient, but also quite
 intensive if the receiver contains many slice instances.
 
-See also the [Registration.SetSpatialV] method.
+See also the [Registrations.SetYAxes] method.
 
 [leftArc]: https://datatracker.ietf.org/doc/html/draft-coretta-oiddir-schema#section-2.3.26
 [rightArc]: https://datatracker.ietf.org/doc/html/draft-coretta-oiddir-schema#section-2.3.29
 [minArc]: https://datatracker.ietf.org/doc/html/draft-coretta-oiddir-schema#section-2.3.27
 [maxArc]: https://datatracker.ietf.org/doc/html/draft-coretta-oiddir-schema#section-2.3.30
 */
-func (r *Registrations) SetSpatialH() {
+func (r *Registrations) SetXAxes(recursive ...bool) {
+	var recurse bool
+	if len(recursive) > 0 {
+		recurse = recursive[0]
+	}
+
 	L := r.Len()
-	if L < 2 {
+	switch {
+	case L == 0:
+		// Nothing to do.
+		return
+	case L == 1:
 		// Its really not practical to set the
 		// four X-axis spatial types upon less
-		// than two slice members ...
+		// than two slice members. However, if
+		// recursion is requested, and if that
+		// one element is a parent, then we'll
+		// handle it manually.
+		if single := r.Index(0); single.IsParent() && recurse {
+			single.SetXAxes(recurse)
+		}
 		return
 	}
 
@@ -283,29 +332,42 @@ func (r *Registrations) SetSpatialH() {
 			this.Spatial().SetRightArc((*r)[i+1].DN())
 		}
 
-		if dn := min.DN(); dn != "" {
-			this.Spatial().SetMinArc(dn)
-			if this.Spatial().LeftArc() == "" && i == 0 {
-				// In case we're at the FIRST element
-				// and NO leftArc was set above ...
-				this.Spatial().SetLeftArc(dn)
-			}
-		}
+		this.setMinMax(i, L, min, max)
 
-		if dn := max.DN(); dn != "" {
-			this.Spatial().SetMaxArc(dn)
-			if this.Spatial().RightArc() == "" && i == L-1 {
-				// In case we're at the LAST element
-				// and NO rightArc was set above ...
-				this.Spatial().SetRightArc(dn)
-			}
+		if recurse && this.r_Children != nil {
+			this.Children().SetXAxes(recurse)
+		}
+	}
+}
+
+func (r *Registration) setMinMax(i, l int, min, max *Registration) {
+	if dn := min.DN(); dn != "" {
+		r.Spatial().SetMinArc(dn)
+		if r.Spatial().LeftArc() == "" && i == 0 {
+			// In case we're at the FIRST element
+			// and NO leftArc was set above ...
+			r.Spatial().SetLeftArc(dn)
+		}
+	}
+
+	if dn := max.DN(); dn != "" {
+		r.Spatial().SetMaxArc(dn)
+		if r.Spatial().RightArc() == "" && i == l-1 {
+			// In case we're at the LAST element
+			// and NO rightArc was set above ...
+			r.Spatial().SetRightArc(dn)
 		}
 	}
 }
 
 /*
-SetSpatialV will link all Y-Axis (Vertical) spatial references according
-to vertical (root, parent, child) association.
+SetYAxes will link all Y-Axis (Vertical) spatial references according
+to vertical (root, parent, child) association. This method is merely a
+convenient alternative to manual (and tedious) Y-Axis associations.
+
+The recursive variadic Boolean value indicates whether the request should
+span the entire progeny of Y-Axis *[Registration] instances (downward),
+or if this request is limited only to the receiver.
 
 This process will result in attempting to set all of "[topArc]", "[supArc]",
 and "[subArc]". It will not set collective variants of these types.
@@ -313,13 +375,13 @@ and "[subArc]". It will not set collective variants of these types.
 Note this operation has the potential to be convenient, but also quite
 intensive if the receiver contains many slice instances.
 
-See also the [Registration.SetSpatialH] method.
+See also the [Registrations.SetXAxes] method.
 
 [supArc]: https://datatracker.ietf.org/doc/html/draft-coretta-oiddir-schema#section-2.3.21
 [topArc]: https://datatracker.ietf.org/doc/html/draft-coretta-oiddir-schema#section-2.3.23
 [subArc]: https://datatracker.ietf.org/doc/html/draft-coretta-oiddir-schema#section-2.3.25
 */
-func (r *Registrations) SetSpatialV(recursive ...bool) {
+func (r *Registrations) SetYAxes(recursive ...bool) {
 	var recurse bool
 	if len(recursive) > 0 {
 		recurse = recursive[0]
@@ -344,7 +406,7 @@ func (r *Registrations) SetSpatialV(recursive ...bool) {
 						child.Spatial().SetTopArc(tdn)
 					}
 					if recurse && child.r_Children != nil {
-						child.Children().SetSpatialV(recurse)
+						child.Children().SetYAxes(recurse)
 					}
 				}
 			}
@@ -358,13 +420,14 @@ i is deemed to be less than the slice at j in the context of ordering.
 
 Ordering is implemented according to individual number form magnitudes.
 */
-func (r Registrations) Less(i, j int) (less bool) {
-	if len(r) <= i || len(r) <= j {
+func (r *Registrations) Less(i, j int) (less bool) {
+	L := r.Len()
+	if L <= i || L <= j {
 		return
 	}
 
-	S1 := r[i]
-	S2 := r[j]
+	S1 := (*r)[i]
+	S2 := (*r)[j]
 
 	if S1.R_X680 == nil || S2.R_X680 == nil {
 		return
@@ -393,21 +456,69 @@ Push appends the non-zero input *[Registration] instance to the receiver
 slice instance.
 */
 func (r *Registrations) Push(reg *Registration) {
-	if !structEmpty(reg) {
-		*r = append(*r, reg)
+	if !r.IsZero() {
+		if !structEmpty(reg) {
+			*r = append(*r, reg)
+		}
 	}
 }
 
-func (r Registrations) Len() int {
-	return len(r)
-}
-
-func (r Registrations) Index(idx int) (reg *Registration) {
-	if 0 <= idx && idx < r.Len() {
-		reg = r[idx]
+/*
+Len returns the integer length of the receiver instance.
+*/
+func (r *Registrations) Len() (l int) {
+	if !r.IsZero() {
+		l = len(*r)
 	}
 
 	return
+}
+
+/*
+Index returns the Nth *[Registration] instance within the receiver instance,
+or a zero instance if not found.
+*/
+func (r *Registrations) Index(idx int) (reg *Registration) {
+	if !r.IsZero() {
+		if 0 <= idx && idx < r.Len() {
+			reg = (*r)[idx]
+		}
+	}
+
+	return
+}
+
+/*
+IsParent returns a Boolean value indicative of the receiver containing
+one or more child *[Registration] instances.
+
+See also [Registrations.HasParents].
+*/
+func (r *Registration) IsParent() (is bool) {
+	if !r.IsZero() {
+		is = r.Children().Len() > 0
+	}
+
+	return
+}
+
+/*
+HasParents returns a Boolean value indicative of the receiver instance
+containing one or more *[Registration] instances who are parents themselves.
+
+See also [Registration.IsParent].
+*/
+func (r *Registrations) HasParents() bool {
+	parents := 0
+	if !r.IsZero() {
+		for i := 0; i < r.Len(); i++ {
+			if r.Index(i).IsParent() {
+				parents++
+			}
+		}
+	}
+
+	return parents > 0
 }
 
 /*
@@ -422,11 +533,47 @@ func (r *Registrations) Swap(i, j int) {
 }
 
 /*
+SortByNumberForm wraps *[Registrations.SortByNumberForm] for convenient
+invocation of [sort.Stable] sorting of any underlying *[Registration]
+(child) instances.
+
+The recursive variadic Boolean value indicates whether the request should
+span the entire progeny of *[Registration] instances (downward), or if this
+request is limited only to the receiver.
+
+Note that this particular wrapper serves no purpose when not executed with
+positive recursion.
+*/
+func (r *Registration) SortByNumberForm(recursive ...bool) {
+	if !r.IsZero() {
+		if L := r.Children().Len(); L != 0 {
+			r.Children().SortByNumberForm(recursive...)
+		}
+	}
+}
+
+/*
 SortByNumberForm executes [sort.Stable] to sort the contents of the receiver
 slice instance according to NumberForm magnitude, ordered lowest to highest.
+
+The recursive variadic Boolean value indicates whether the request should
+span the entire progeny of *[Registration] instances (downward), or if this
+request is limited only to the receiver.
 */
-func (r *Registrations) SortByNumberForm() {
-	stabSort(r)
+func (r *Registrations) SortByNumberForm(recursive ...bool) {
+	if L := r.Len(); L > 0 {
+		stabSort(r)
+
+		if len(recursive) > 0 {
+			if recurse := recursive[0]; recurse {
+				// recurse through each slice reg and sort their
+				// children, descending indefinitely until done.
+				for i := 0; i < L; i++ {
+					r.Index(i).SortByNumberForm(recursive...)
+				}
+			}
+		}
+	}
 }
 
 /*
@@ -494,6 +641,13 @@ func (r *Registration) Children() (regs *Registrations) {
 IsZero returns a Boolean value indicative of a nil receiver state.
 */
 func (r *Registration) IsZero() bool {
+	return r == nil
+}
+
+/*
+IsZero returns a Boolean value indicative of a nil receiver state.
+*/
+func (r *Registrations) IsZero() bool {
 	return r == nil
 }
 

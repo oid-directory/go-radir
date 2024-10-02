@@ -279,6 +279,8 @@ func TestRegistration_Allocate(t *testing.T) {
 	iso.X660().SetUnicodeValue(`ISO`)
 
 	for _, str := range [][]string{
+		{`ASN.1`, `{iso(1)
+			member-body(2) 56521}`},
 		{`ASN.1`,
 			`{iso(1)
 			identified-organization(3)	
@@ -289,9 +291,9 @@ func TestRegistration_Allocate(t *testing.T) {
 			56521}`},
 		{`Dot`, `1.3.6.1.4.1.56521`},
 	} {
-		iso.Allocate(str[1])
-		if walked := iso.Walk(str[1]); walked.X680().N() != `56521` {
-			t.Errorf("%s [%s walk] failed: want 56521, got '%s'",
+		//alloc := iso.Allocate(str[1])
+		if walked := iso.Allocate(str[1]); walked.X680().N() != `56521` {
+			t.Errorf("%s [%s alloc/walk] failed: want 56521, got '%s'",
 				t.Name(), str[0], walked.X680().N())
 			return
 		}
@@ -566,7 +568,7 @@ func TestRegistrations(t *testing.T) {
 	nreg2.Spatial().SetTopArc("n=1,ou=Registrations,o=rA")
 	nreg2.Spatial().SetSupArc(`n=18,n=999,n=56521,n=1,n=4,n=1,n=6,n=3,n=1,ou=Registrations,o=rA`)
 	_ = nreg2.NewChild(`33`, `thisName`) // no need for var
-	nreg2.Children().SetSpatialV(true)
+	nreg2.Children().SetYAxes(true)
 	nreg2.Walk(nil)
 	nreg2.Size()
 	nreg2.LDIFs()
@@ -576,13 +578,19 @@ func TestRegistrations(t *testing.T) {
 	nreg3 := twoDPro.Profile().NewRegistration()
 	nreg3.X680().SetDotNotation(`1.3.6.1.4.1.56521.999.8`)
 	nreg3.SetDN(nreg3.X680().DotNotation(), DotNotToDN2D)
+	nreg3.SetXAxes(true)
+	nreg3.SetXAxes()
+	nreg3.SetYAxes(true)
+	nreg3.SetYAxes()
 	nreg3.X680().SetIdentifier(`dad`)
 	nreg3.X680().SetASN1Notation(`{iso identified-organization(3) dod(6) internet(1) private(4) enterprise(1) 56521 example(999) dad(8)}`)
 	nreg3.X680().SetN(`8`)
 	_ = nreg3.NewChild(`14`, `son`)
 
-	regs.SetSpatialH()
+	regs.SetXAxes()
 	regs.Push(nreg2) // ordered incorrectly
+	regs.SetXAxes(true)
+	regs.SetYAxes(true)
 	regs.Push(nreg1)
 
 	if L := regs.Len(); L != 2 {
@@ -596,8 +604,8 @@ func TestRegistrations(t *testing.T) {
 		return
 	}
 
-	regs.SetSpatialH()
-	regs.SetSpatialV(true)
+	regs.SetXAxes()
+	regs.SetYAxes(true)
 
 	if !regs.Contains(`2`) {
 		t.Errorf("%s failed; '%s' not found", t.Name(), o2)
@@ -605,26 +613,85 @@ func TestRegistrations(t *testing.T) {
 	}
 
 	dad := regs.Get(o2)
+	_, as, err := cleanASN1(`{1 3 6 1 4 1 56521 999 18 2}`)
+	if err != nil {
+		t.Errorf("%s failed: %v", t.Name(), err)
+		return
+	}
+
+	nanfs := make([][]string, 0)
+	for i := 0; i < len(as); i++ {
+		nanfs = append(nanfs, nanfToSlice(as[i]))
+	}
+
+	dad.allocateASN1(nanfs)
 	dad.Size()
 	dad.LDIFs()
-	//son := dad.Children().Index(0)
 
 	// codecov
-	regs = append(regs, &Registration{})
-	regs = append(regs, &Registration{})
-	regs.SetSpatialH()
-	regs.SetSpatialV()
+	regs.Push(&Registration{R_X680: &X680{R_N: "2"}})
+	regs.Push(&Registration{R_X680: &X680{R_N: "1"}})
+
+	altRegs := &Registrations{
+		&Registration{},
+		&Registration{},
+	}
+
+	altRegs.Less(0, 1)
+	(*altRegs)[0].R_X680 = &X680{}
+	(*altRegs)[1].R_X680 = &X680{}
+	altRegs.Less(0, 1)
+
+	regs.SetXAxes(true)
+	regs.SetYAxes(true)
 
 	if regs.Less(2, 3) {
 		t.Errorf("%s failed: want false, got true", t.Name())
 		return
 	}
+	regs.SortByNumberForm(true)
 
-	regs = append(regs, &Registration{R_X680: &X680{}})
-	regs = append(regs, &Registration{R_X680: &X680{}})
+	regs.Push(&Registration{})
+	regs.Push(&Registration{})
+	regs.Less(8, 9)
+	regs.HasParents()
 
-	if regs.Less(4, 5) {
+	regs.Push(&Registration{R_X680: &X680{}})
+	regs.Push(&Registration{R_X680: &X680{}})
+
+	if regs.Less(10, 11) {
 		t.Errorf("%s failed: want false, got true", t.Name())
+	}
+}
+
+func TestNumericOID(t *testing.T) {
+	for _, oid := range []string{
+		`1.3.6.1.4.1`,
+		`2.5`,
+		`0.0.4`,
+	} {
+		if !isNumericOID(oid) {
+			t.Errorf("%s failed: genuine OID flagged as bogus (%s)", t.Name(), oid)
+			return
+		}
+	}
+
+	for _, bad := range []string{
+		`2`,
+		``,
+		`3.1`,
+		`$.3`,
+		`1.2.3..4.5`,
+		`1.2.3.4.5.`,
+		`4.2.3.t.5`,
+		`_`,
+		`1.50`,
+		`1.S0`,
+	} {
+		if isNumericOID(bad) {
+			t.Errorf("%s failed: bogus OID flagged as genuine (%s)", t.Name(), bad)
+			return
+		}
 	}
 }
 
