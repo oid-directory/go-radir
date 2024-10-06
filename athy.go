@@ -577,6 +577,7 @@ func (r *Registrants) LDIFs() (l string) {
 		for i := 0; i < r.Len(); i++ {
 			athy := r.Index(i)
 			bld.WriteString(athy.LDIF())
+			bld.WriteRune(10)
 		}
 		l = bld.String()
 	}
