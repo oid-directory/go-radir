@@ -1279,12 +1279,7 @@ func (r *Registration) LDIFs() (l string) {
 				}
 			}
 		}
-
-		if l = _l.String(); len(l) > 0 {
-			if rune(l[len(l)-1]) == rune(10) {
-				l = l[:len(l)-1]
-			}
-		}
+		l = _l.String()
 	}
 
 	return
