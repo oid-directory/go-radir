@@ -1240,14 +1240,6 @@ func (r *Registration) LDIF() (l string) {
 
 			l = bld.String()
 		}
-
-		if len(l) > 0 {
-			// if the very last character is
-			// a newline, remove it.
-			if rune(l[len(l)-1]) == rune(10) {
-				l = l[:len(l)-1]
-			}
-		}
 	}
 
 	return
@@ -1273,12 +1265,10 @@ func (r *Registration) LDIFs() (l string) {
 		LK := K.Len()
 		for i := 0; i < LK; i++ {
 			if sub := (*K)[i]; !sub.IsZero() {
-				if subs := sub.LDIFs(); len(subs) > 0 {
-					_l.WriteString(subs)
-					_l.WriteRune(10)
-				}
+				_l.WriteString(sub.LDIFs())
 			}
 		}
+
 		l = _l.String()
 	}
 
