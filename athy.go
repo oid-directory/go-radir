@@ -25,6 +25,8 @@ type Registrant struct {
 	R_Id   string   `ldap:"registrantID"`       // RASCHEMA § 2.3.34
 	R_TTL  string   `ldap:"rATTL"`              // RASCHEMA § 2.3.100
 	RC_TTL string   `ldap:"c-rATTL;collective"` // RASCHEMA § 2.3.101
+	R_SOC  string   `ldap:"structuralObjectClass"`
+	R_CAS  []string `ldap:"collectiveAttributeSubentries"`
 	R_OC   []string `ldap:"objectClass"`
 	R_Desc []string `ldap:"description"`
 	R_Also []string `ldap:"seeAlso"`
@@ -134,6 +136,32 @@ func (r *Registrant) refreshObjectClasses() {
 	if len(tmp) != len(r.R_OC) {
 		r.R_OC = tmp
 	}
+}
+
+/*
+CollectiveAttributeSubentries returns one or more LDAP distinguished names
+which identify all "[collectiveAttributeSubentries]" references that serve
+to populate the *[Registrant] entry.
+
+Note this value is not specified manually by users.
+
+[collectiveAttributeSubentries]: https://www.rfc-editor.org/rfc/rfc3671.html#section-2.2
+*/
+func (r *Registrant) CollectiveAttributeSubentries() (cas []string) {
+	if !r.IsZero() {
+		cas = r.R_CAS
+	}
+
+	return
+}
+
+/*
+CollectiveAttributeSubentriesGetFunc executes the [GetOrSetFunc] instance
+and returns its own return values. The 'any' value will require type assertion
+in order to be accessed reliably. An error is returned if issues arise.
+*/
+func (r *Registrant) CollectiveAttributeSubentriesGetFunc(getfunc GetOrSetFunc) (any, error) {
+	return getFieldValueByNameTagAndGoSF(r, getfunc, `collectiveAttributeSubentries`)
 }
 
 /*
@@ -414,15 +442,26 @@ func (r *Registrant) ObjectClassesGetFunc(getfunc GetOrSetFunc) (any, error) {
 }
 
 /*
-Structural returns the string literal `registrant`, offering a convenient
-means of identifying the STRUCTURAL objectClass of the receiver.
+StructuralObjectClass returns the string-based STRUCTURAL object class,
+or a zero string if unset.
+
+Note this value is not specified manually by users.
 */
-func (r *Registrant) Structural() (oc string) {
+func (r *Registrant) StructuralObjectClass() (soc string) {
 	if !r.IsZero() {
-		oc = `registrant`
+		soc = r.R_SOC
 	}
 
 	return
+}
+
+/*
+StructuralObjectClassGetFunc executes the [GetOrSetFunc] instance and
+returns its own return values. The 'any' value will require type assertion
+in order to be accessed reliably. An error is returned if issues arise.
+*/
+func (r *Registrant) StructuralObjectClassGetFunc(getfunc GetOrSetFunc) (any, error) {
+	return getFieldValueByNameTagAndGoSF(r, getfunc, `structuralObjectClass`)
 }
 
 /*

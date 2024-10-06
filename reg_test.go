@@ -578,6 +578,7 @@ func TestRegistrations(t *testing.T) {
 	nreg3 := twoDPro.Profile().NewRegistration()
 	nreg3.X680().SetDotNotation(`1.3.6.1.4.1.56521.999.8`)
 	nreg3.SetDN(nreg3.X680().DotNotation(), DotNotToDN2D)
+	nreg3.CollectiveAttributeSubentries()
 	nreg3.SetXAxes(true)
 	nreg3.SetXAxes()
 	nreg3.SetYAxes(true)
@@ -713,7 +714,8 @@ func bogusRegistration_codecov() error {
 	empty.Unmarshal()
 	empty.Dedicated()
 	empty.Combined()
-	empty.Structural()
+	empty.StructuralObjectClass()
+	empty.CollectiveAttributeSubentries()
 	regs := Registrations{empty}
 	regs.Unmarshal()
 	regs.Marshal(&DITProfile{}, efunk)
@@ -742,6 +744,7 @@ func bogusRegistration_codecov() error {
 		nilReg.X680().dotNotationHandler(`.`)
 		nilReg.X680().asn1NotationHandler(`{iso}`)
 
+		nilReg.CollectiveAttributeSubentries()
 		regs.Push(nilReg)
 
 		nilReg.R_OC = append(nilReg.R_OC, `x690Context`)
@@ -750,6 +753,14 @@ func bogusRegistration_codecov() error {
 		nilReg.R_OC = append(nilReg.R_OC, `x660Context`)
 		nilReg.R_OC = append(nilReg.R_OC, `top`)
 		nilReg.refreshObjectClasses()
+		nilReg.X680().SetDotNotation(`1.3.6.1.4.1.56521.999.0.8`)
+		nilReg.X680().SetN(`8`)
+		nilReg.X680().SetASN1Notation(`{iso(1) identified-organization(3) dod(6) internet(1) private(4) enterprise(1) 56521 reserved(0) eight(8)}`)
+		nilReg.SetDN(nilReg.X680().DotNotation(), DotNotToDN3D)
+		nilReg.R_OC = []string{}
+		nilReg.R_SOC = ``
+		nilReg.NewChild(`1`, `this`)
+		nilReg.NewSibling(`2`, `that`)
 
 		var em *Registration
 		em.X660()
@@ -765,6 +776,7 @@ func bogusRegistration_codecov() error {
 		em.Spatial()
 		em.Supplement()
 		em.GoverningStructureRule()
+		nilReg.CollectiveAttributeSubentries()
 		nilReg.GoverningStructureRule()
 		nilReg.DN()
 		nilReg.Root()
@@ -774,7 +786,7 @@ func bogusRegistration_codecov() error {
 		nilReg.Marshal(nil)
 		nilReg.Marshal(ffunk)
 		nilReg.Marshal(efunk)
-		nilReg.Structural()
+		nilReg.StructuralObjectClass()
 		em.Marshal(ffunk)
 		em.Marshal(efunk)
 		//nilReg.R_DITProfile = &DITProfile{R_TTL: "5"}
@@ -834,6 +846,7 @@ func testBogusRegistrationGetters(nilReg *Registration) error {
 	nilReg.Supplement().RC_DiscloseTo = []string{"testing"}
 	nilReg.Supplement().R_Class = "testing"
 	nilReg.R_GSR = "testing"
+	nilReg.R_SOC = "testing"
 	nilReg.R_TTL = ""
 	nilReg.RC_TTL = ""
 	nilReg.TTL()
@@ -850,7 +863,9 @@ func testBogusRegistrationGetters(nilReg *Registration) error {
 		nilReg.DNGetFunc,
 		nilReg.DescriptionGetFunc,
 		nilReg.ObjectClassesGetFunc,
+		nilReg.StructuralObjectClassGetFunc,
 		nilReg.GoverningStructureRuleGetFunc,
+		nilReg.CollectiveAttributeSubentriesGetFunc,
 		nilReg.SeeAlsoGetFunc,
 		nilReg.TTLGetFunc,
 		nilReg.X690().DotEncodingGetFunc,

@@ -13,6 +13,8 @@ type Registration struct {
 	R_GSR     string   `ldap:"governingStructureRule"`
 	R_TTL     string   `ldap:"rATTL"`
 	RC_TTL    string   `ldap:"c-rATTL;collective"`
+	R_SOC     string   `ldap:"structuralObjectClass"`
+	R_CAS     []string `ldap:"collectiveAttributeSubentries"`
 	R_OC      []string `ldap:"objectClass"`
 	R_Desc    []string `ldap:"description"` // effective "title" of reg
 	R_Also    []string `ldap:"seeAlso"`
@@ -656,6 +658,55 @@ func (r *Registration) isEmpty() bool {
 }
 
 /*
+StructuralObjectClass returns the string-based STRUCTURAL object class,
+or a zero string if unset.
+
+Note this value is not specified manually by users.
+*/
+func (r *Registration) StructuralObjectClass() (soc string) {
+	if !r.IsZero() {
+		soc = r.R_SOC
+	}
+
+	return
+}
+
+/*
+StructuralObjectClassGetFunc executes the [GetOrSetFunc] instance and
+returns its own return values. The 'any' value will require type assertion
+in order to be accessed reliably. An error is returned if issues arise.
+*/
+func (r *Registration) StructuralObjectClassGetFunc(getfunc GetOrSetFunc) (any, error) {
+	return getFieldValueByNameTagAndGoSF(r, getfunc, `structuralObjectClass`)
+}
+
+/*
+CollectiveAttributeSubentries returns one or more LDAP distinguished names
+which identify all "[collectiveAttributeSubentries]" references that serve
+to populate the *[Registration] entry.
+
+Note this value is not specified manually by users.
+
+[collectiveAttributeSubentries]: https://www.rfc-editor.org/rfc/rfc3671.html#section-2.2
+*/
+func (r *Registration) CollectiveAttributeSubentries() (cas []string) {
+	if !r.IsZero() {
+		cas = r.R_CAS
+	}
+
+	return
+}
+
+/*
+CollectiveAttributeSubentriesGetFunc executes the [GetOrSetFunc] instance
+and returns its own return values. The 'any' value will require type assertion
+in order to be accessed reliably. An error is returned if issues arise.
+*/
+func (r *Registration) CollectiveAttributeSubentriesGetFunc(getfunc GetOrSetFunc) (any, error) {
+	return getFieldValueByNameTagAndGoSF(r, getfunc, `collectiveAttributeSubentries`)
+}
+
+/*
 DN returns the string-based LDAP Distinguished Name value, or a zero
 string if unset.
 */
@@ -972,16 +1023,20 @@ func (r *Registration) Kind() string {
 }
 
 /*
-Structural returns the STRUCTURAL objectClass of the receiver instance. The
-expected return values are `arc` or `rootArc`.  A zero string is returned
-if neither class is declared.
+IsRoot returns a Boolean value indicative of whether the receiver instance
+represents an official root registration, as indicated by presence of the
+"[rootArc]" STRUCTURAL class.
+
+See also the [Registration.IsNonRoot] method.
+
+[rootArc]: https://datatracker.ietf.org/doc/html/draft-coretta-oiddir-schema#section-2.5.2
 */
-func (r *Registration) Structural() (s string) {
+func (r *Registration) IsRoot() (is bool) {
 	if !r.IsZero() {
-		if strInSlice(`rootArc`, r.R_OC) {
-			s = `rootArc`
-		} else if strInSlice(`arc`, r.R_OC) {
-			s = `arc`
+		rn := []string{`0`, `1`, `2`}
+		roid := `1.3.6.1.4.1.56521.101.2.5.2`
+		if is = eq(r.R_SOC, `rootarc`) || eq(r.R_SOC, roid); is {
+			is = strInSlice(r.X680().N(), rn)
 		}
 	}
 
@@ -989,25 +1044,18 @@ func (r *Registration) Structural() (s string) {
 }
 
 /*
-IsRoot returns a Boolean value indicative of whether the receiver instance
-represents an official root registration, as indicated by presence of the
-"[rootArc]" STRUCTURAL class.
+IsNonRoot returns a Boolean value indicative of the presence of the "[arc]"
+STRUCTURAL object class (in descriptor or numeric OID form) within the
+receiver instance.
 
-[rootArc]: https://datatracker.ietf.org/doc/html/draft-coretta-oiddir-schema#section-2.5.2
+See also the [Registration.IsRoot] method.
+
+[arc]: https://datatracker.ietf.org/doc/html/draft-coretta-oiddir-schema#section-2.5.3
 */
-func (r *Registration) IsRoot() (is bool) {
-	if !r.IsZero() {
-		if is = eq(r.Structural(), `rootarc`); is {
-			is = strInSlice(r.X680().N(), []string{`0`, `1`, `2`})
-		}
-	}
-
-	return
-}
-
 func (r *Registration) IsNonRoot() (is bool) {
 	if !r.IsZero() {
-		is = eq(r.Structural(), `arc`)
+		roid := `1.3.6.1.4.1.56521.101.2.5.3`
+		is = eq(r.R_SOC, `arc`) || eq(r.R_SOC, roid)
 	}
 
 	return
@@ -1272,6 +1320,7 @@ func (r *Registration) NewChild(nf, id string) (s *Registration) {
 		// but swap rootArc for arc.
 		_s.SetObjectClasses(removeStrInSlice(`rootArc`, r.ObjectClasses()))
 		_s.SetObjectClasses(`arc`)
+		_s.R_SOC = `arc`
 
 		for val, funk := range map[string]func(...any) error{
 			ident: _s.X680().SetIdentifier,
@@ -1286,16 +1335,6 @@ func (r *Registration) NewChild(nf, id string) (s *Registration) {
 			}
 		}
 
-		// Take any common spatial types, but use the
-		// source DN for immediate subordinate placement
-		dn := r.DN()
-		r.Spatial().SetSubArc(cdn)
-		_s.Spatial().SetSupArc(dn)
-		if r.IsRoot() {
-			_s.Spatial().SetTopArc(dn)
-		} else {
-			_s.Spatial().SetTopArc(r.Spatial().TopArc())
-		}
 		_s.r_Parent = r
 		s = _s
 
@@ -1371,6 +1410,7 @@ func (r *Registration) NewSibling(nf, id string) (s *Registration) {
 		sdn := `n=` + nf + `,` + dnp
 
 		_s.SetObjectClasses(r.ObjectClasses())
+		_s.R_SOC = r.R_SOC // structuralObjectClass
 
 		for val, funk := range map[string]func(...any) error{
 			ident: _s.X680().SetIdentifier,

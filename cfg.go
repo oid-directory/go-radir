@@ -966,6 +966,7 @@ func (r *DITProfile) NewRegistration(root ...bool) *Registration {
 
 	return &Registration{
 		R_OC:         oc,
+		R_SOC:        soc,
 		R_DITProfile: r,
 		r_root:       new(registeredRoot),
 	}
@@ -985,13 +986,15 @@ func (r *DITProfile) NewRegistrant() *Registrant {
 	}
 
 	var oc []string = make([]string, 0)
+	var soc string = `registrant`
 	oc = append(oc, []string{
 		`top`,
-		`registrant`,
+		soc,
 	}...)
 
 	return &Registrant{
 		R_OC:         oc,
+		R_SOC:        soc,
 		R_DITProfile: r,
 	}
 }

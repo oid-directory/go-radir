@@ -89,7 +89,7 @@ func toLDIF(in any) string {
 	}
 
 	for _, tag := range tags {
-		if eq(tag, `objectclass`) || eq(tag, `dn`) {
+		if eq(tag, `objectclass`) || eq(tag, `dn`) || eq(tag, `structuralObjectClass`) {
 			// handled at higher level
 			continue
 		}

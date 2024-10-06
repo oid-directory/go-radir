@@ -95,9 +95,9 @@ this type.
 
 [registrant]: https://datatracker.ietf.org/doc/html/draft-coretta-oiddir-schema#section-2.5.16
 */
-func ExampleRegistrant_Structural() {
+func ExampleRegistrant_StructuralObjectClass() {
 	var reg *Registrant = myDedicatedProfile.NewRegistrant() // assume this is populated
-	fmt.Println(reg.Structural())
+	fmt.Println(reg.StructuralObjectClass())
 	// Output: registrant
 }
 
@@ -195,7 +195,9 @@ func bogusRegistrant_codecov() error {
 
 	nilReg.DN()
 	nilReg.GoverningStructureRule()
+	nilReg.CollectiveAttributeSubentries()
 	nilReg.Description()
+	nilReg.StructuralObjectClass()
 	nilReg.ObjectClasses()
 	nilReg.SeeAlso()
 	nilReg.TTL()
@@ -205,11 +207,14 @@ func bogusRegistrant_codecov() error {
 
 func testBogusDedicatedGetters(nilReg *Registrant) error {
 	nilReg.R_GSR = "testing"
+	nilReg.R_SOC = "testing"
 	for _, funk := range []func(GetOrSetFunc) (any, error){
 		nilReg.DNGetFunc,
 		nilReg.DescriptionGetFunc,
 		nilReg.GoverningStructureRuleGetFunc,
 		nilReg.ObjectClassesGetFunc,
+		nilReg.StructuralObjectClassGetFunc,
+		nilReg.CollectiveAttributeSubentriesGetFunc,
 		nilReg.SeeAlsoGetFunc,
 		nilReg.TTLGetFunc,
 	} {
