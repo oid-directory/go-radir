@@ -571,6 +571,19 @@ func (r *Registrants) Unmarshal() (maps []map[string][]string) {
 	return
 }
 
+func (r *Registrants) LDIFs() (l string) {
+	if !r.IsZero() {
+		bld := newBuilder()
+		for i := 0; i < r.Len(); i++ {
+			athy := r.Index(i)
+			bld.WriteString(athy.LDIF())
+		}
+		l = bld.String()
+	}
+
+	return
+}
+
 /*
 Marshal returns an error following an attempt to execute all input method
 [go-ldap/v3 Entry.Unmarshal] signatures. The result is a sequence of marshaled
@@ -622,8 +635,22 @@ func (r *Registrants) Push(ath *Registrant) {
 /*
 Len returns the integer length of the receiver instance.
 */
-func (r Registrants) Len() int {
-	return len(r)
+func (r *Registrants) Len() int {
+	return len(*r)
+}
+
+/*
+Index returns the Nth *[Registrant] instance within the receiver instance,
+or a zero instance if not found.
+*/
+func (r *Registrants) Index(idx int) (athy *Registrant) {
+	if !r.IsZero() {
+		if 0 <= idx && idx < r.Len() {
+			athy = (*r)[idx]
+		}
+	}
+
+	return
 }
 
 /*
