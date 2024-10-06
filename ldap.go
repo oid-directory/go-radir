@@ -76,16 +76,16 @@ func (r AttributeSelector) AllOper() []string { return []string{`+`} }
 /*
 toLDIF implements a crude approximation of LDIF content.
 */
-func toLDIF(in any) string {
+func toLDIF(in any) (out string) {
 	if in == nil {
-		return ``
+		return
 	}
 
 	bld := newBuilder()
 
 	tags := getAttributeTypeFieldTags(in)
 	if len(tags) == 0 {
-		return ``
+		return
 	}
 
 	for _, tag := range tags {
@@ -102,5 +102,7 @@ func toLDIF(in any) string {
 		}
 	}
 
-	return bld.String()
+	out = bld.String()
+
+	return
 }

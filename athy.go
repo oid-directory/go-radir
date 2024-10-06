@@ -195,6 +195,14 @@ func (r *Registrant) LDIF() (l string) {
 
 			l = bld.String()
 		}
+
+		if len(l) > 0 {
+			// if the very last character is
+			// a newline, remove it.
+			if rune(l[len(l)-1]) == rune(10) {
+				l = l[:len(l)-1]
+			}
+		}
 	}
 
 	return
