@@ -1025,7 +1025,7 @@ func (r *Registration) Kind() string {
 /*
 IsRoot returns a Boolean value indicative of whether the receiver instance
 represents an official root registration, as indicated by presence of the
-"[rootArc]" STRUCTURAL class.
+"[rootArc]" STRUCTURAL class (in descriptor or numeric OID).
 
 See also the [Registration.IsNonRoot] method.
 

@@ -54,7 +54,7 @@ func TestSubentry_codecov(t *testing.T) {
 	subentry.IsZero()
 	subentry.Spatial()
 	subentry.isEmpty()
-	subentry.Structural()
+	subentry.StructuralObjectClass()
 	subentry.DN()
 	subentry.ObjectClasses()
 	subentry.ObjectClassesGetFunc(nil)

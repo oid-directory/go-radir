@@ -6,7 +6,8 @@ se.go implements a generic subentry type with basic methods.
 
 /*
 Subentry contains contents derived from, or for use in creating, LDAP
-subentries within the context of the I-D series.
+subentries within the context of the I-D series. It is meant to be used
+as a convenient abstraction of a "[subentry]", per RFC 3672.
 
 In cases where Collective Attributes, or other virtualization services,
 are not available, and where manual population of values meant for broad
@@ -27,7 +28,10 @@ for convenient creation of subentries for submission through an LDAP Add
 request or other means.
 
 Instances of this type are created using the *[DITProfile.NewSubentry]
-method.
+method, and can be marshaled using the [go-ldap/ldap Entry.Unmarshal]
+method submitted as a closure to the [Subentry.Marshal] method.
+
+[subentry]: https://datatracker.ietf.org/doc/html/rfc3672#section-2.4
 */
 type Subentry struct {
 	R_DN   string   `ldap:"dn"`
@@ -57,9 +61,12 @@ func (r *Subentry) isEmpty() bool {
 }
 
 /*
-Structural returns the STRUCTURAL objectClass `subentry`.
+StructuralObjectClass returns the STRUCTURAL objectClass "[subentry]"
+under any circumstance.
+
+[subentry]: https://datatracker.ietf.org/doc/html/rfc3672#section-2.4
 */
-func (r *Subentry) Structural() (s string) {
+func (r *Subentry) StructuralObjectClass() (s string) {
 	return `subentry`
 }
 
