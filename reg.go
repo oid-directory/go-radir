@@ -1273,11 +1273,18 @@ func (r *Registration) LDIFs() (l string) {
 		LK := K.Len()
 		for i := 0; i < LK; i++ {
 			if sub := (*K)[i]; !sub.IsZero() {
-				_l.WriteString(sub.LDIFs())
-				_l.WriteRune(10)
+				if subs := sub.LDIFs(); len(subs) > 0 {
+					_l.WriteString(subs)
+					_l.WriteRune(10)
+				}
 			}
 		}
-		l = _l.String()
+
+		if l = _l.String(); len(l) > 0 {
+			if rune(l[len(l)-1]) == rune(10) {
+				l = l[:len(l)-1]
+			}
+		}
 	}
 
 	return
