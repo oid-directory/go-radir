@@ -550,7 +550,6 @@ func TestRegistrations(t *testing.T) {
 
 	regs.Less(1, 2)
 	regs.Swap(1, 2)
-	regs.Push(&Registration{})
 
 	nreg1 := myDedicatedProfile.NewRegistration()
 	nreg2 := myDedicatedProfile.NewRegistration()
@@ -571,7 +570,11 @@ func TestRegistrations(t *testing.T) {
 	nreg2.Children().SetYAxes(true)
 	nreg2.Walk(nil)
 	nreg2.Size()
-	nreg2.LDIFs()
+	nreg2.LDIF(-1)
+	nreg2.LDIF(0)
+	nreg2.LDIF(1)
+	nreg2.LDIF(2)
+	nreg2.Subentries()
 
 	twoDPro := NewFactoryDefaultDUAConfig()
 	twoDPro.R_DSE.R_Model = TwoDimensional
@@ -627,7 +630,9 @@ func TestRegistrations(t *testing.T) {
 
 	dad.allocateASN1(nanfs)
 	dad.Size()
-	dad.LDIFs()
+	dad.LDIF(0)
+	dad.LDIF(1)
+	dad.LDIF(2)
 
 	// codecov
 	regs.Push(&Registration{R_X680: &X680{R_N: "2"}})
@@ -652,6 +657,9 @@ func TestRegistrations(t *testing.T) {
 	}
 	regs.SortByNumberForm(true)
 
+	var upreg *Registration
+	upreg.Subentries()
+
 	regs.Push(&Registration{})
 	regs.Push(&Registration{})
 	regs.Less(8, 9)
@@ -663,6 +671,9 @@ func TestRegistrations(t *testing.T) {
 	if regs.Less(10, 11) {
 		t.Errorf("%s failed: want false, got true", t.Name())
 	}
+
+	regs = append(regs, &Registration{})
+	regs.SetXAxes()
 }
 
 func TestNumericOID(t *testing.T) {

@@ -571,7 +571,15 @@ func (r *Registrants) Unmarshal() (maps []map[string][]string) {
 	return
 }
 
-func (r *Registrants) LDIFs() (l string) {
+/*
+LDIF returns the string representation of the contents of the receiver
+instance as LDIF entries. No scope specifier is available, as *[Registrant]
+entries are generally not parents themselves, this an implicit scope of
+"[baseObject]" (or "0") is used.
+
+[baseObject]: https://datatracker.ietf.org/doc/html/rfc4511#section-4.5.1.2
+*/
+func (r *Registrants) LDIF() (l string) {
 	if !r.IsZero() {
 		bld := newBuilder()
 		for i := 0; i < r.Len(); i++ {

@@ -31,6 +31,7 @@ type Registration struct {
 	r_Parent     *Registration
 	r_Children   *Registrations
 	r_root       *registeredRoot
+	r_se         *Subentries
 }
 
 /*
@@ -68,6 +69,23 @@ func (r Registrations) Get(n string) (reg *Registration) {
 	}
 
 	return
+}
+
+/*
+Subentries returns, and optionally initializes, the underlying instance
+of *[Subentries] that have been associated with the receiver instance.
+*/
+func (r *Registration) Subentries() *Subentries {
+	if r.IsZero() {
+		return &Subentries{}
+	}
+
+	if r.r_se.IsZero() {
+		sents := make(Subentries, 0)
+		r.r_se = &sents
+	}
+
+	return r.r_se
 }
 
 /*
@@ -247,6 +265,22 @@ Contains returns a Boolean value indicative of whether an instance of
 */
 func (r Registrations) Contains(n string) bool {
 	return !r.Get(n).IsZero()
+}
+
+/*
+valid returns a Boolean value indicative of the minimum requirements of
+any *[Registration] instance being satisfied.
+*/
+func (r *Registration) valid() (ok bool) {
+	if !r.IsZero() {
+		if r.R_DN != "" && r.R_X680 != nil {
+			if isNumber(r.R_X680.R_N) {
+				ok = strInSlice(`registration`, r.R_OC)
+			}
+		}
+	}
+
+	return
 }
 
 /*
@@ -459,7 +493,7 @@ slice instance.
 */
 func (r *Registrations) Push(reg *Registration) {
 	if !r.IsZero() {
-		if !structEmpty(reg) {
+		if reg.valid() {
 			*r = append(*r, reg)
 		}
 	}
@@ -1207,69 +1241,91 @@ func (r *Registration) Root() (n int, class string) {
 }
 
 /*
-LDIF returns the string LDIF form of the receiver instance. Note that
-this is a crude approximation of LDIF and should ideally be parsed
-through a reliable LDIF parser such as [go-ldap/ldif] to verify integrity.
+LDIF returns the string LDIF form of the receiver instance.
+
+The input scope integer value defines the desired [search scope] for
+the output.
+
+  - A scope of zero (0) indicates 'baseObject' scoping, and is the default if unspecified
+  - A scope of one (1) indicates 'singleLevel' scoping
+  - Any other scope indicates 'wholeSubtree' scoping
+
+Note that this is a crude approximation of LDIF and should ideally be
+parsed through a reliable LDIF parser such as [go-ldap/ldif] to verify
+integrity.
 
 [go-ldap/ldif]: https://pkg.go.dev/github.com/go-ldap/ldif
+[search scope]: https://datatracker.ietf.org/doc/html/rfc4511#section-4.5.1.2
 */
-func (r *Registration) LDIF() (l string) {
-	if !r.IsZero() {
+func (r *Registration) LDIF(scope ...int) (l string) {
+
+	// Impose default search scope
+	var sscope int
+	if len(scope) > 0 {
+		if 0 <= scope[0] && scope[0] <= 2 {
+			sscope = scope[0]
+		}
+	}
+
+	baseObject := func() string {
 		dn := readFieldByTag(`dn`, r)
+		_bld := newBuilder()
+
 		if len(dn) > 0 {
 			r.refreshObjectClasses()
 
 			oc := readFieldByTag(`objectClass`, r)
-			bld := newBuilder()
 
-			bld.WriteString(`dn: ` + dn[0])
-			bld.WriteRune(10)
+			_bld.WriteString(`dn: ` + dn[0])
+			_bld.WriteRune(10)
 
 			for i := 0; i < len(oc); i++ {
-				bld.WriteString(`objectClass: ` + oc[i])
-				bld.WriteRune(10)
+				_bld.WriteString(`objectClass: ` + oc[i])
+				_bld.WriteRune(10)
 			}
 
-			bld.WriteString(toLDIF(r))
-			bld.WriteString(r.X660().ldif())
-			bld.WriteString(r.X667().ldif())
-			bld.WriteString(r.X680().ldif())
-			bld.WriteString(r.X690().ldif())
-			bld.WriteString(r.Spatial().ldif())
-			bld.WriteString(r.Supplement().ldif())
-
-			l = bld.String()
+			_bld.WriteString(toLDIF(r))
+			_bld.WriteString(r.X660().ldif())
+			_bld.WriteString(r.X667().ldif())
+			_bld.WriteString(r.X680().ldif())
+			_bld.WriteString(r.X690().ldif())
+			_bld.WriteString(r.Spatial().ldif())
+			_bld.WriteString(r.Supplement().ldif())
 		}
+
+		return _bld.String()
 	}
 
-	return
-}
-
-/*
-LDIFs traverses the extent of the underlying OID tree and returns the
-content as an LDIF payload containing all non-nil *[Registration]
-instances found en route.
-
-Note that this process does not traverse "upwards" -- only "downwards".
-This means that for a COMPLETE set of an entire root's LDIFs, this
-method should be executed upon said root *[Registration] instance.
-
-Otherwise, it will only write the instances from that point downward.
-*/
-func (r *Registration) LDIFs() (l string) {
 	if !r.IsZero() {
-		_l := newBuilder()
-		_l.WriteString(r.LDIF())
-		_l.WriteRune(10)
+		bld := newBuilder()
+
 		K := r.Children()
 		LK := K.Len()
-		for i := 0; i < LK; i++ {
-			if sub := (*K)[i]; !sub.IsZero() {
-				_l.WriteString(sub.LDIFs())
-			}
-		}
 
-		l = _l.String()
+		switch sscope {
+		case 0:
+			bld.WriteString(baseObject())
+			l = bld.String()
+		case 1:
+			for i := 0; i < LK; i++ {
+				if sub := K.Index(i); !sub.IsZero() {
+					bld.WriteString(sub.LDIF()) // no scope == baseObject
+					bld.WriteRune(10)
+				}
+			}
+			l += bld.String()
+		default:
+			// include baseObject as first returned entry.
+			bld.WriteString(baseObject())
+			bld.WriteRune(10)
+
+			for i := 0; i < LK; i++ {
+				if sub := K.Index(i); !sub.IsZero() {
+					bld.WriteString(sub.LDIF(2)) // recurse subtree indefinitely
+				}
+			}
+			l += bld.String()
+		}
 	}
 
 	return

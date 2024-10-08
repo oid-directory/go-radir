@@ -106,3 +106,60 @@ func toLDIF(in any) (out string) {
 
 	return
 }
+
+/*
+tokenizeDN will attempt to tokenize the input dn value.
+
+Through the act of tokenization, the following occurs:
+
+An LDAP distinguished name, such as "uid=jesse+gidNumber=5042,ou=People,dc=example,dc=com,
+
+... is returned as:
+
+	[][][]string{
+	  [][]string{
+	    []string{`uid`,`jesse`},
+	    []string{`gidNumber`,`5042`},
+	  },
+	  [][]string{
+	    []string{`ou`,`People`},
+	  },
+	  [][]string{
+	    []string{`dc`,`example`},
+	  },
+	  [][]string{
+	    []string{`dc`,`com`},
+	  },
+	}
+
+Please note that this function is NOT considered a true parser. If actual
+parsing of component attribute values within a given DN is either desired
+or required, consider use of a proper parser such as [go-ldap/v3's ParseDN]
+function.
+
+[go-ldap/v3's ParseDN]: https://pkg.go.dev/github.com/go-ldap/ldap/v3#ParseDN
+*/
+func tokenizeDN(d string) (z [][][]string) {
+	if len(d) == 0 {
+		return [][][]string{}
+	}
+
+	z = make([][][]string, 0)
+
+	rdns := splitUnescaped(d, `,`, `\`)
+	lr := len(rdns)
+	for i := 0; i < lr; i++ {
+		var atvs [][]string = make([][]string, 0)
+		srdns := splitUnescaped(rdns[i], `+`, `\`)
+		for j := 0; j < len(srdns); j++ {
+			if atv := split(srdns[j], `=`); len(atv) == 2 {
+				atvs = append(atvs, atv)
+			} else {
+				atvs = append(atvs, []string{})
+			}
+		}
+		z = append(z, atvs)
+	}
+
+	return
+}

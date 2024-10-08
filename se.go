@@ -31,11 +31,14 @@ Instances of this type are created using the *[DITProfile.NewSubentry]
 method, and can be marshaled using the [go-ldap/ldap Entry.Unmarshal]
 method submitted as a closure to the [Subentry.Marshal] method.
 
+See also the [NewSubtreeSpecification] function, which is used to produce
+an instance of [SubtreeSpecification] using a string input value.
+
 [subentry]: https://datatracker.ietf.org/doc/html/rfc3672#section-2.4
 */
 type Subentry struct {
-	R_DN   string   `ldap:"dn"`
-	R_CN   string   `ldap:"cn"`
+	R_DN   string   `ldap:"dn"` // full DN
+	R_CN   string   `ldap:"cn"` // rDN value
 	R_TTL  string   `ldap:"rATTL"`
 	RC_TTL string   `ldap:"c-rATTL;collective"`
 	R_GSR  string   `ldap:"governingStructureRule"`
@@ -47,6 +50,93 @@ type Subentry struct {
 	R_Extra      *Supplement
 	r_DITProfile *DITProfile
 	r_root       *registeredRoot
+}
+
+/*
+Subentries implements the slice type of *[Subentry].
+*/
+type Subentries []*Subentry
+
+/*
+Push appends the input *[Subentry] instance to the receiver instance.
+
+The common name of the input *[Subentry] instance MUST be unique to the
+receiver instance, meaning no other preexisting slice member may bear
+the common name in question.
+*/
+func (r *Subentries) Push(se *Subentry) {
+	if !r.IsZero() && !structEmpty(se) {
+		if se.validName(se.DN()) && se.CN() != "" && !r.Contains(se.CN()) {
+			*r = append(*r, se)
+		}
+	}
+}
+
+/*
+Contains wraps [Subentries.Get] to return a Boolean value indicative of
+a positive match between the input value and the candidate common name or
+alternatively the distinguished name.
+
+Case is not significant in the matching process.
+*/
+func (r *Subentries) Contains(try string) (has bool) {
+	if !r.IsZero() {
+		has = !r.Get(try).IsZero()
+	}
+
+	return
+}
+
+/*
+Get returns the *[Subentry] instance which bears a matching common name
+or distinguished name to the input value.
+
+Case is not significant in the matching process.
+*/
+func (r *Subentries) Get(try string) (got *Subentry) {
+	if !r.IsZero() {
+		for i := 0; i < r.Len(); i++ {
+			if slice := r.Index(i); !slice.IsZero() {
+				if eq(slice.CN(), try) || eq(slice.DN(), try) {
+					got = slice
+					break
+				}
+			}
+		}
+	}
+
+	return
+}
+
+/*
+Len returns the integer length of the receiver instance.
+*/
+func (r *Subentries) Len() (l int) {
+	if !r.IsZero() {
+		l = len(*r)
+	}
+
+	return
+}
+
+/*
+Index returns the Nth slice member found within the receiver instance.
+*/
+func (r *Subentries) Index(idx int) (got *Subentry) {
+	if !r.IsZero() {
+		if 0 <= idx && idx <= r.Len()-1 {
+			got = (*r)[idx]
+		}
+	}
+
+	return
+}
+
+/*
+IsZero returns a Boolean value indicative of a nil receiver state.
+*/
+func (r *Subentries) IsZero() bool {
+	return r == nil
 }
 
 /*
@@ -87,7 +177,12 @@ SetSubtreeSpecification appends the provided string value to the receiver
 instance as a Subtree Specification. If an instance of []string is provided,
 the receiver value is clobbered (overwritten).
 */
-func (r *Subentry) SetSubtreeSpecification(args ...any) (err error) {
+func (r *Subentry) SetSubtreeSpecification(args ...any) error {
+	if len(args) > 0 {
+		if ss, assert := args[0].(SubtreeSpecification); assert {
+			args[0] = ss.String()
+		}
+	}
 	return writeFieldByTag(`subtreeSpecification`, r.SetSubtreeSpecification, r, args...)
 }
 
@@ -127,16 +222,39 @@ func (r *Subentry) CNGetFunc(getfunc GetOrSetFunc) (any, error) {
 }
 
 /*
+validName returns a Boolean value indicative of a valid naming convention for
+the receiver instance in terms of RFC 3672 and ITU-T Rec. X.501 conformity.
+*/
+func (r *Subentry) validName(dn string) (ok bool) {
+	if tkz := tokenizeDN(dn); len(tkz) > 0 {
+		if len(tkz[0]) == 1 {
+			if len(tkz[0][0]) == 2 {
+				ok = strInSlice(tkz[0][0][0], []string{`cn`, `2.5.4.3`})
+			}
+		}
+	}
+
+	return
+}
+
+/*
 LDIF returns the string LDIF form of the receiver instance. Note that
 this is a crude approximation of LDIF and should ideally be parsed
 through a reliable LDIF parser such as [go-ldap/ldif] to verify integrity.
 
+Also note that if the receiver instance produces an LDIF entry which is
+named in a manner that violates [clause 14.2.2 of ITU-T Rec. X.501], the
+output will be zero.
+
 [go-ldap/ldif]: https://pkg.go.dev/github.com/go-ldap/ldif
+[clause 14.2.2 of ITU-T Rec. X.501]: https://www.itu.int/rec/T-REC-X.501
 */
 func (r *Subentry) LDIF() (l string) {
 	if !r.IsZero() {
-		dn := readFieldByTag(`dn`, r)
-		if len(dn) > 0 {
+		if dn := readFieldByTag(`dn`, r); len(dn) > 0 {
+			if !r.validName(dn[0]) {
+				return
+			}
 			r.refreshObjectClasses()
 
 			oc := readFieldByTag(`objectClass`, r)
@@ -232,36 +350,6 @@ instance of [GetOrSetFunc], returning an error if this fails.
 */
 func (r *Subentry) SetDN(args ...any) error {
 	return writeFieldByTag(`dn`, r.SetDN, r, args...)
-}
-
-/*
-GoverningStructureRule returns the "[governingStructureRule]" assigned to
-the receiver instance.
-
-Note the "[governingStructureRule]" type is operational, and cannot be set
-by the end user. It is also not collective.
-
-Use of this method is only meaningful in environments which employ one or
-more "[dITStructureRule]" definitions.
-
-[governingStructureRule]: https://datatracker.ietf.org/doc/html/rfc4512#section-3.4.6
-[dITStructureRule]: https://datatracker.ietf.org/doc/html/rfc4512#section-4.1.7.1
-*/
-func (r *Subentry) GoverningStructureRule() (gsr string) {
-	if !r.IsZero() {
-		gsr = r.R_GSR
-	}
-
-	return
-}
-
-/*
-GoverningStructureRuleGetFunc executes the [GetOrSetFunc] instance and
-returns its own return values. The 'any' value will require type assertion
-in order to be accessed reliably. An error is returned if issues arise.
-*/
-func (r *Subentry) GoverningStructureRuleGetFunc(getfunc GetOrSetFunc) (any, error) {
-	return getFieldValueByNameTagAndGoSF(r, getfunc, `governingStructureRule`)
 }
 
 /*
@@ -444,6 +532,7 @@ func (r *Subentry) DITProfile() (prof *DITProfile) {
 			prof = &DITProfile{}
 		}
 	}
+
 	return
 }
 

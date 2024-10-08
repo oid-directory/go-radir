@@ -23,18 +23,21 @@ var (
 	fields     func(string) []string               = strings.Fields
 	hasPfx     func(string, string) bool           = strings.HasPrefix
 	hasSfx     func(string, string) bool           = strings.HasSuffix
+	idxs       func(string, string) int            = strings.Index
 	idxr       func(string, rune) int              = strings.IndexRune
 	join       func([]string, string) string       = strings.Join
 	lc         func(string) string                 = strings.ToLower
 	uc         func(string) string                 = strings.ToUpper
 	split      func(string, string) []string       = strings.Split
 	eq         func(string, string) bool           = strings.EqualFold
-	contains   func(string, string) bool           = strings.Contains
+	ctns       func(string, string) bool           = strings.Contains
 	splitAfter func(string, string) []string       = strings.SplitAfter
 	splitN     func(string, string, int) []string  = strings.SplitN
+	trim       func(string, string) string         = strings.Trim
 	trimS      func(string) string                 = strings.TrimSpace
 	trimL      func(string, string) string         = strings.TrimLeft
 	trimR      func(string, string) string         = strings.TrimRight
+	trimPfx    func(string, string) string         = strings.TrimPrefix
 	replaceAll func(string, string, string) string = strings.ReplaceAll
 	stabSort   func(sort.Interface)                = sort.Stable
 
@@ -740,4 +743,16 @@ func isValidOIDPrefix(id string) bool {
 	}
 
 	return true
+}
+
+func splitUnescaped(str, sep, esc string) (slice []string) {
+	slice = split(str, sep)
+	for i := len(slice) - 2; i >= 0; i-- {
+		if hasSfx(slice[i], esc) {
+			slice[i] = slice[i][:len(slice[i])-len(esc)] + sep + slice[i+1]
+			slice = append(slice[:i+1], slice[i+2:]...)
+		}
+	}
+
+	return
 }

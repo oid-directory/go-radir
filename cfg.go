@@ -100,10 +100,6 @@ type DITProfile struct {
 	// client optimization, if needed.
 	R_Settings *ProfileSettings
 
-	// Cache contains the profile's cache instance, if enabled.
-	// Caching is covered in Section 2.2.3.4 of the RADUA I-D.
-	r_Cache *Cache
-
 	// Make a note of our dedicated type policy (draft or RFC).
 	r_alt_types bool
 
@@ -997,42 +993,6 @@ func (r *DITProfile) NewRegistrant() *Registrant {
 		R_SOC:        soc,
 		R_DITProfile: r,
 	}
-}
-
-/*
-MakeCache assigns a freshly initialized instance of *[Cache] to the receiver
-instance. The *[Cache] instance may be accessed via the [DITProfile.Cache]
-method.
-*/
-func (r *DITProfile) MakeCache(limits ...int) {
-	var ai, ab int
-	if len(limits) > 0 {
-		ai = limits[0]
-		if len(limits) > 1 {
-			ab = limits[1]
-		}
-	}
-
-	r.r_Cache = newCache(ai, ab)
-}
-
-/*
-DropCache purges and frees the underlying instance of *[Cache] within the
-receiver instance.
-*/
-func (r *DITProfile) DropCache() {
-	if c := r.Cache(); !c.IsZero() {
-		c.Flush()
-		c.Free()
-	}
-}
-
-/*
-Cache returns the underlying instance of *[Cache] within the receiver
-instance.
-*/
-func (r *DITProfile) Cache() *Cache {
-	return r.r_Cache
 }
 
 /*

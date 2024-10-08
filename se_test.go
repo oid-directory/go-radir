@@ -6,14 +6,25 @@ import (
 )
 
 func TestSubentry_codecov(t *testing.T) {
+	sents := make(Subentries, 0)
+
+	var subentries *Subentries
+	subentries.Len()
+	subentries.Get(`hello`)
+	subentries.Contains(`hello`)
+	subentries.Index(21)
+	subentries.IsZero()
+
 	var subentry *Subentry
 	subentry.Unmarshal()
 	subentry.Marshal(func(any) error {
 		return nil
 	})
+
 	subentry.Marshal(func(any) error {
 		return fmt.Errorf("ERROR")
 	})
+
 	subentry.Supplement()
 	subentry.X660()
 	subentry.Spatial()
@@ -23,6 +34,8 @@ func TestSubentry_codecov(t *testing.T) {
 	subentry.refreshObjectClasses()
 	subentry = myDedicatedProfile.NewSubentry()
 	subentry.SetSubtreeSpecification(`{}`)
+	subspec, _ := NewSubtreeSpecification(`{}`)
+	subentry.SetSubtreeSpecification(subspec)
 	subentry.SubtreeSpecification()
 	subentry.SubtreeSpecificationGetFunc(nil)
 	subentry.refreshObjectClasses()
@@ -76,8 +89,6 @@ func TestSubentry_codecov(t *testing.T) {
 	subentry.refreshObjectClasses()
 	subentry.SetObjectClasses(`x660Context`)
 	subentry.refreshObjectClasses()
-	subentry.GoverningStructureRule()
-	subentry.GoverningStructureRuleGetFunc(nil)
 	subentry.DNGetFunc(nil)
 	subentry.Unmarshal()
 	subentry.Marshal(nil)
@@ -88,5 +99,18 @@ func TestSubentry_codecov(t *testing.T) {
 	subentry.Marshal(func(any) error {
 		return fmt.Errorf("ERROR")
 	})
+
+	mtg := &Subentry{R_DN: `o=example-subentry,cn=Parent,ou=Container,dc=suffix`}
+	mtg.LDIF()
+
+	subentries = &sents
+	subentries.Push(subentry)
+
+	subentries.IsZero()
+	subentries.Get(`hello`)
+	subentries.Get(`spatialContext`)
+	subentries.Contains(`hello`)
+	subentries.Index(21)
+	subentries.IsZero()
 
 }

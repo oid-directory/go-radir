@@ -106,4 +106,10 @@ func ExampleRangeCheckSearchRequest() {
 func TestLDAP_codecov(t *testing.T) {
 	toLDIF(nil)
 	toLDIF(struct{}{})
+	tokenizeDN("")
+	tokenizeDN("o")
+	tokenizeDN("o=example")
+	tokenizeDN("gidNumber=5042+o=example")
+	tokenizeDN("uid=jesse+gidNumber=5042,ou=People,o=example")
+	tokenizeDN(`cn=acme\, co,ou=Organizations,dc=example,dc=com`)
 }

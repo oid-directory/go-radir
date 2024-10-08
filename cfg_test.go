@@ -219,8 +219,6 @@ func TestDITProfile_codecov(t *testing.T) {
 	E.Profile(0).ModelGetFunc(nil)
 
 	X.NewRegistration(true)
-	X.MakeCache(100, 100)
-	X.DropCache()
 	X.Settings().Len()
 	X.Settings().Set(`key0`, `value`)
 	X.Settings().Set(`key1`, true)
