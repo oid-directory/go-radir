@@ -217,6 +217,7 @@ func TestDITProfile_codecov(t *testing.T) {
 	E.Profile(0).MailGetFunc(nil)
 	E.Profile(0).URIGetFunc(nil)
 	E.Profile(0).ModelGetFunc(nil)
+	E.Profile(0).TTL()
 
 	X.NewRegistration(true)
 	X.Settings().Len()

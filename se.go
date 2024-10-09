@@ -526,7 +526,7 @@ func (r *Subentry) Kind() string {
 DITProfile returns the *[DITProfile] instance assigned to the receiver,
 if set, else nil is returned.
 */
-func (r *Subentry) DITProfile() (prof *DITProfile) {
+func (r *Subentry) Profile() (prof *DITProfile) {
 	if !r.IsZero() {
 		if prof = r.r_DITProfile; !prof.Valid() {
 			prof = &DITProfile{}

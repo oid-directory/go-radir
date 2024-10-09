@@ -57,7 +57,7 @@ func (r *Registration) X660() *X660 {
 
 	if r.R_X660.IsZero() {
 		r.R_X660 = new(X660)
-		r.R_X660.r_DITProfile = r.DITProfile()
+		r.R_X660.r_DITProfile = r.Profile()
 		r.R_X660.r_root = r.r_root
 	}
 
@@ -74,7 +74,7 @@ func (r *Subentry) X660() *X660 {
 
 	if r.R_X660.IsZero() {
 		r.R_X660 = new(X660)
-		r.R_X660.r_DITProfile = r.DITProfile()
+		r.R_X660.r_DITProfile = r.Profile()
 		r.R_X660.r_root = r.r_root
 	}
 
@@ -82,10 +82,10 @@ func (r *Subentry) X660() *X660 {
 }
 
 /*
-DITProfile returns the *[DITProfile] instance assigned to the receiver,
+profile returns the *[DITProfile] instance assigned to the receiver,
 if set, else nil is returned.
 */
-func (r *X660) DITProfile() (prof *DITProfile) {
+func (r *X660) profile() (prof *DITProfile) {
 	if prof = r.r_DITProfile; !prof.Valid() {
 		prof = &DITProfile{}
 	}
@@ -305,7 +305,7 @@ Note that use of this method is only useful when operating under the
 terms of the "Dedicated Registrants Policy".
 */
 func (r *X660) CurrentAuthorities() (val []string) {
-	if r.DITProfile().Dedicated() {
+	if r.profile().Dedicated() {
 		val = r.R_CAuthyDN
 	}
 
@@ -321,7 +321,7 @@ Note that use of this method is only useful when operating under the
 terms of the "Dedicated Registrants Policy".
 */
 func (r *X660) SetCurrentAuthorities(args ...any) error {
-	if !r.DITProfile().Dedicated() {
+	if !r.profile().Dedicated() {
 		return RegistrantPolicyErr
 	}
 	return writeFieldByTag(`currentAuthority`, r.SetCurrentAuthorities, r, args...)
@@ -336,7 +336,7 @@ Note that use of this method is only useful when operating under the
 terms of the "Dedicated Registrants Policy".
 */
 func (r *X660) CurrentAuthoritiesGetFunc(getfunc GetOrSetFunc) (any, error) {
-	if !r.DITProfile().Dedicated() {
+	if !r.profile().Dedicated() {
 		return nil, RegistrantPolicyErr
 	}
 	return getFieldValueByNameTagAndGoSF(r, getfunc, `currentAuthority`)
@@ -350,7 +350,7 @@ Note that use of this method is only useful when operating under the
 terms of the "Dedicated Registrants Policy".
 */
 func (r *X660) FirstAuthorities() (val []string) {
-	if r.DITProfile().Dedicated() {
+	if r.profile().Dedicated() {
 		val = r.R_FAuthyDN
 	}
 
@@ -366,7 +366,7 @@ Note that use of this method is only useful when operating under the
 terms of the "Dedicated Registrants Policy".
 */
 func (r *X660) SetFirstAuthorities(args ...any) error {
-	if !r.DITProfile().Dedicated() {
+	if !r.profile().Dedicated() {
 		return RegistrantPolicyErr
 	}
 
@@ -382,7 +382,7 @@ Note that use of this method is only useful when operating under the
 terms of the "Dedicated Registrants Policy".
 */
 func (r *X660) FirstAuthoritiesGetFunc(getfunc GetOrSetFunc) (any, error) {
-	if !r.DITProfile().Dedicated() {
+	if !r.profile().Dedicated() {
 		return nil, RegistrantPolicyErr
 	}
 	return getFieldValueByNameTagAndGoSF(r, getfunc, `firstAuthority`)
@@ -396,7 +396,7 @@ Note that use of this method is only useful when operating under the
 terms of the "Dedicated Registrants Policy".
 */
 func (r *X660) CFirstAuthorities() (val []string) {
-	if r.DITProfile().Dedicated() {
+	if r.profile().Dedicated() {
 		val = r.RC_FAuthyDN
 	}
 
@@ -412,7 +412,7 @@ Note that use of this method is only useful when operating under the
 terms of the "Dedicated Registrants Policy".
 */
 func (r *X660) CFirstAuthoritiesGetFunc(getfunc GetOrSetFunc) (any, error) {
-	if !r.DITProfile().Dedicated() {
+	if !r.profile().Dedicated() {
 		return nil, RegistrantPolicyErr
 	}
 
@@ -427,7 +427,7 @@ Note that use of this method is only useful when operating under the
 terms of the "Dedicated Registrants Policy".
 */
 func (r *X660) CCurrentAuthorities() (val []string) {
-	if r.DITProfile().Dedicated() {
+	if r.profile().Dedicated() {
 		val = r.RC_CAuthyDN
 	}
 
@@ -443,7 +443,7 @@ Note that use of this method is only useful when operating under the
 terms of the "Dedicated Registrants Policy".
 */
 func (r *X660) CCurrentAuthoritiesGetFunc(getfunc GetOrSetFunc) (any, error) {
-	if !r.DITProfile().Dedicated() {
+	if !r.profile().Dedicated() {
 		return nil, RegistrantPolicyErr
 	}
 
@@ -458,7 +458,7 @@ Note that use of this method is only useful when operating under the
 terms of the "Dedicated Registrants Policy".
 */
 func (r *X660) Sponsors() (val []string) {
-	if r.DITProfile().Dedicated() {
+	if r.profile().Dedicated() {
 		val = r.R_SAuthyDN
 	}
 
@@ -473,7 +473,7 @@ Note that use of this method is only useful when operating under the
 terms of the "Dedicated Registrants Policy".
 */
 func (r *X660) SetSponsors(args ...any) error {
-	if !r.DITProfile().Dedicated() {
+	if !r.profile().Dedicated() {
 		return RegistrantPolicyErr
 	}
 
@@ -489,7 +489,7 @@ Note that use of this method is only useful when operating under the
 terms of the "Dedicated Registrants Policy".
 */
 func (r *X660) SponsorsGetFunc(getfunc GetOrSetFunc) (any, error) {
-	if !r.DITProfile().Dedicated() {
+	if !r.profile().Dedicated() {
 		return nil, RegistrantPolicyErr
 	}
 	return getFieldValueByNameTagAndGoSF(r, getfunc, `sponsor`)
@@ -503,7 +503,7 @@ Note that use of this method is only useful when operating under the
 terms of the "Dedicated Registrants Policy".
 */
 func (r *X660) CSponsors() (val []string) {
-	if r.DITProfile().Dedicated() {
+	if r.profile().Dedicated() {
 		val = r.RC_SAuthyDN
 	}
 
@@ -519,7 +519,7 @@ Note that use of this method is only useful when operating under the
 terms of the "Dedicated Registrants Policy".
 */
 func (r *X660) CSponsorsGetFunc(getfunc GetOrSetFunc) (any, error) {
-	if !r.DITProfile().Dedicated() {
+	if !r.profile().Dedicated() {
 		return nil, RegistrantPolicyErr
 	}
 
@@ -540,7 +540,7 @@ func (r *X660) CombinedFirstAuthority() (dr *FirstAuthority) {
 
 	if r.R_CFAuthy.IsZero() {
 		r.R_CFAuthy = new(FirstAuthority)
-		r.R_CFAuthy.r_alt_types = r.DITProfile().r_alt_types
+		r.R_CFAuthy.r_alt_types = r.profile().r_alt_types
 	}
 
 	return r.R_CFAuthy
@@ -560,7 +560,7 @@ func (r *X660) CombinedCurrentAuthority() *CurrentAuthority {
 
 	if r.R_CCAuthy.IsZero() {
 		r.R_CCAuthy = new(CurrentAuthority)
-		r.R_CCAuthy.r_alt_types = r.DITProfile().r_alt_types
+		r.R_CCAuthy.r_alt_types = r.profile().r_alt_types
 	}
 
 	return r.R_CCAuthy
@@ -580,7 +580,7 @@ func (r *X660) CombinedSponsor() *Sponsor {
 
 	if r.R_CSAuthy.IsZero() {
 		r.R_CSAuthy = new(Sponsor)
-		r.R_CSAuthy.r_alt_types = r.DITProfile().r_alt_types
+		r.R_CSAuthy.r_alt_types = r.profile().r_alt_types
 	}
 
 	return r.R_CSAuthy

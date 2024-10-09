@@ -131,7 +131,7 @@ TTL returns the string time-to-live value associated with the entry of the
 indicated profile.
 */
 func (r *DITProfile) TTL() string {
-	return selectTTL(r.R_TTL, r.RC_TTL)
+	return r.R_TTL
 }
 
 /*
@@ -910,13 +910,17 @@ func (r *DITProfile) determineRegistrantPolicy() (int, int) {
 }
 
 /*
-NewSubentry initializes and returns a new instance of *[Subentry].
+NewSubentry initializes and returns a new instance of *[Subentry]. No
+fields are populated except for object classes, and the return instance
+is not added to any collection.
 */
 func (r *DITProfile) NewSubentry() *Subentry {
 	var oc []string = make([]string, 0)
 	oc = append(oc, []string{
 		`top`,
+		`extensibleObject`,
 		`subentry`,
+		`collectiveAttributeSubentry`,
 	}...)
 
 	return &Subentry{

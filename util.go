@@ -219,34 +219,6 @@ func unmarshalSkipField(tag string, t reflect.StructField) bool {
 	return !t.IsExported() || hasPfx(tag, `c-`) || hasSfx(tag, `;collective`)
 }
 
-func selectTTL(lttl, cttl string) string {
-	var ttl string
-	if len(cttl) > 0 {
-		ttl = cttl
-	}
-
-	if len(lttl) > 0 {
-		ttl = lttl
-	}
-
-	if len(ttl) == 0 {
-		return ``
-	}
-
-	return ttl
-}
-
-func assertTTL(ttl any) (t int) {
-	switch tv := ttl.(type) {
-	case string:
-		t, _ = atoi(tv)
-	case int:
-		t = tv
-	}
-
-	return
-}
-
 func atobig(n string) (bint *big.Int, ok bool) {
 	if isNumber(n) {
 		bint, ok = big.NewInt(0).SetString(n, 10)
@@ -538,73 +510,6 @@ func condenseWHSP(b string) string {
 }
 
 /*
-isIdentifier scans the input string val and judges whether it
-qualifies as an X.680 identifier, or name form. All of the
-following MUST evaluate as true:
-
-  - Non-zero in length
-  - Begins with a lowercase alphabetical character
-  - Ends in an alphanumeric character
-  - Contains only alphanumeric characters or hyphens
-  - No contiguous hyphens
-
-This function is an alternative to engaging the [antlr4512]
-parsing subsystem.
-*/
-func isIdentifier(val string) bool {
-	if len(val) == 0 {
-		return false
-	}
-
-	// must begin with a lower alpha.
-	if !isLower(rune(val[0])) {
-		return false
-	}
-
-	// can only end in alnum.
-	if !isAlnum(rune(val[len(val)-1])) {
-		return false
-	}
-
-	// watch hyphens to avoid contiguous use
-	var lastHyphen bool
-
-	// iterate all characters in val, checking
-	// each one for validity.
-	for i := 0; i < len(val); i++ {
-		ch := rune(val[i])
-		switch {
-		case isAlnum(ch):
-			lastHyphen = false
-		case ch == '-':
-			if lastHyphen {
-				// cannot use consecutive hyphens
-				return false
-			}
-			lastHyphen = true
-		default:
-			// invalid character (none of [a-zA-Z0-9\-])
-			return false
-		}
-	}
-
-	return true
-}
-
-/*
-isAlnum returns a Boolean value indicative of whether rune r represents
-an alphanumeric character. Specifically, one (1) of the following ranges
-must evaluate as true:
-
-  - 0-9 (ASCII characters 48 through 57)
-  - A-Z (ASCII characters 65 through 90)
-  - a-z (ASCII characters 97 through 122)
-*/
-func isAlnum(r rune) bool {
-	return isLower(r) || isUpper(r) || isDigit(r)
-}
-
-/*
 take additional steps for attribute types of note, such as measuring the
 length (depth) of a freshly-set 'dotNotation' value upon an instance of
 *X680.
@@ -665,7 +570,7 @@ func rootClass(n int) (class string) {
 func nanfToSlice(nanf string) (slice []string) {
 	if isNumber(nanf) {
 		slice = []string{``, nanf}
-	} else if isIdentifier(nanf) {
+	} else if IsIdentifier(nanf) {
 		switch nanf {
 		case `itu-t`:
 			slice = []string{nanf, `0`}
@@ -695,54 +600,6 @@ func mknanf(in []string) (try string) {
 		try = in[0] + `(` + in[1] + `)`
 	}
 	return
-}
-
-func isNumericOID(id string) bool {
-	if !isValidOIDPrefix(id) {
-		return false
-	}
-
-	var last rune
-	for i, c := range id {
-		switch {
-		case c == '.':
-			if last == c {
-				return false
-			} else if i == len(id)-1 {
-				return false
-			}
-			last = '.'
-		case ('0' <= c && c <= '9'):
-			last = c
-			continue
-		}
-	}
-
-	return true
-}
-
-func isValidOIDPrefix(id string) bool {
-	slices := split(id, `.`)
-	if len(slices) < 2 {
-		return false
-	}
-
-	root, err := atoi(slices[0])
-	if err != nil {
-		return false
-	}
-	if !(0 <= root && root <= 2) {
-		return false
-	}
-
-	var sub int
-	if sub, err = atoi(slices[1]); err != nil {
-		return false
-	} else if !(0 <= sub && sub <= 39) && root != 2 {
-		return false
-	}
-
-	return true
 }
 
 func splitUnescaped(str, sep, esc string) (slice []string) {

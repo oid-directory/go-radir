@@ -102,7 +102,7 @@ func RegistrantDNGenerator(args ...any) (gen any, err error) {
 		return
 	}
 
-	base := `,` + r.DITProfile().RegistrantBase()
+	base := `,` + r.Profile().RegistrantBase()
 
 	id := make([]byte, randIDSize)
 	for i := range id {
@@ -253,7 +253,7 @@ func nanfToIdAndNF(in string) (id, n string) {
 			return
 		}
 		var _id, _n string
-		if _id = in[:idx]; !isIdentifier(_id) {
+		if _id = in[:idx]; !IsIdentifier(_id) {
 			return
 		}
 		if _n = in[idx+1 : final]; !isNumber(_n) {
@@ -456,7 +456,7 @@ func DotNotToDN2D(args ...any) (dn any, err error) {
 	// an error.  This is required because we need to know
 	// the reg. base string value as well as the directory
 	// model in use.
-	var duaConf *DITProfile = r.DITProfile()
+	var duaConf *DITProfile = r.Profile()
 	// We want at least one Registration Base
 	// and our model MUST be 3D. Return error
 	// value otherwise.
@@ -540,7 +540,7 @@ func DNToDotNot2D(args ...any) (id any, err error) {
 	// an error.  This is required because we need to know
 	// the reg. base string value as well as the directory
 	// model in use.
-	var duaConf *DITProfile = r.DITProfile()
+	var duaConf *DITProfile = r.profile()
 	// We want at least one Registration Base
 	// and our model MUST be 3D. Return error
 	// value otherwise.
@@ -614,7 +614,7 @@ func DotNotToDN3D(args ...any) (dn any, err error) {
 	// an error.  This is required because we need to know
 	// the reg. base string value as well as the directory
 	// model in use.
-	var duaConf *DITProfile = r.DITProfile()
+	var duaConf *DITProfile = r.Profile()
 	// We want at least one Registration Base
 	// and our model MUST be 3D. Return error
 	// value otherwise.
@@ -692,7 +692,7 @@ func DNToDotNot3D(args ...any) (id any, err error) {
 	// an error.  This is required because we need to know
 	// the reg. base string value as well as the directory
 	// model in use.
-	var duaConf *DITProfile = r.DITProfile()
+	var duaConf *DITProfile = r.profile()
 	// We want at least one Registration Base
 	// and our model MUST be 3D. Return error
 	// value otherwise.

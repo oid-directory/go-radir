@@ -32,7 +32,7 @@ func (r *Registration) X667() *X667 {
 
 	if r.R_X667.IsZero() {
 		r.R_X667 = new(X667)
-		r.R_X667.r_DITProfile = r.DITProfile()
+		r.R_X667.r_DITProfile = r.Profile()
 		r.R_X667.r_root = r.r_root
 	}
 
@@ -40,10 +40,10 @@ func (r *Registration) X667() *X667 {
 }
 
 /*
-DITProfile returns the *[DITProfile] instance assigned to the receiver,
+Profile returns the *[DITProfile] instance assigned to the receiver,
 if set, else nil is returned.
 */
-func (r *X667) DITProfile() (prof *DITProfile) {
+func (r *X667) profile() (prof *DITProfile) {
 	if prof = r.r_DITProfile; !prof.Valid() {
 		prof = &DITProfile{}
 	}

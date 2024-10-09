@@ -251,10 +251,16 @@ func ExampleASN1NotationToMulti_sixValuesFromOne() {
 		return
 	}
 
+	subent := myDedicatedProfile.NewSubentry()
+	subent.SetDN(`cn=test-subentry,n=101,n=56521,n=1,n=4,n=1,n=6,n=3,n=1,ou=Registrations,o=rA`)
+	subent.SetCN(`test-subentry`)
+	//subent.SetSubtreeSpecification(`{minimum 1, maximum 1, specificationFilter {}}`)
+	reg.Subentries().Push(subent)
+
 	// Take a look at what we got so far. There are
 	// other ways of examining the values, but LDIF
 	// is quick and easy (not to mention relevant).
-	fmt.Println(reg.LDIF())
+	fmt.Println(reg.LDIF(0))
 	// Output: dn: n=101,n=56521,n=1,n=4,n=1,n=6,n=3,n=1,ou=Registrations,o=rA
 	// objectClass: top
 	// objectClass: registration
@@ -574,7 +580,15 @@ func TestRegistrations(t *testing.T) {
 	nreg2.LDIF(0)
 	nreg2.LDIF(1)
 	nreg2.LDIF(2)
-	nreg2.Subentries()
+	sube := myDedicatedProfile.NewSubentry()
+	sube.SetDN(`cn=test-subentry,n=1,n=18,n=999,n=56521,n=1,n=4,n=1,n=6,n=3,n=1,ou=Registrations,o=rA`)
+	sube.SetCN(`test-subentry`)
+
+	_ = IsASN1Notation(`{iso(1)}`)
+	_ = IsNumericOID(`1.2.3`)
+	_ = IsIdentifier(`l`)
+	_ = IsNameAndNumberForm(`l(1)`)
+	_ = IsNumberForm(`1`)
 
 	twoDPro := NewFactoryDefaultDUAConfig()
 	twoDPro.R_DSE.R_Model = TwoDimensional
@@ -582,6 +596,23 @@ func TestRegistrations(t *testing.T) {
 	nreg3.X680().SetDotNotation(`1.3.6.1.4.1.56521.999.8`)
 	nreg3.SetDN(nreg3.X680().DotNotation(), DotNotToDN2D)
 	nreg3.CollectiveAttributeSubentries()
+
+	nreg2.Children().Push(nreg1)
+	nreg2.Children().Push(nreg3)
+	nreg2.Subentries().Push(sube)
+	nreg3.Subentries().Push(sube)
+
+	nreg2.LDIF(0, true)
+	nreg2.LDIF(0, false)
+
+	nreg2.LDIF(2, true)
+	nreg2.LDIF(2, false)
+
+	nreg2.subtreeLDIF(true)
+	nreg3.subtreeLDIF(true)
+	nreg2.subtreeLDIF(false)
+	nreg3.subtreeLDIF(false)
+
 	nreg3.SetXAxes(true)
 	nreg3.SetXAxes()
 	nreg3.SetYAxes(true)
@@ -682,7 +713,7 @@ func TestNumericOID(t *testing.T) {
 		`2.5`,
 		`0.0.4`,
 	} {
-		if !isNumericOID(oid) {
+		if !IsNumericOID(oid) {
 			t.Errorf("%s failed: genuine OID flagged as bogus (%s)", t.Name(), oid)
 			return
 		}
@@ -700,7 +731,7 @@ func TestNumericOID(t *testing.T) {
 		`1.50`,
 		`1.S0`,
 	} {
-		if isNumericOID(bad) {
+		if IsNumericOID(bad) {
 			t.Errorf("%s failed: bogus OID flagged as genuine (%s)", t.Name(), bad)
 			return
 		}
@@ -772,17 +803,18 @@ func bogusRegistration_codecov() error {
 		nilReg.R_SOC = ``
 		nilReg.NewChild(`1`, `this`)
 		nilReg.NewSibling(`2`, `that`)
+		nilReg.NewSubentry(`subentry`)
 
 		var em *Registration
 		em.X660()
-		em.X660().DITProfile()
+		em.X660().profile()
 		em.X667()
-		em.X667().DITProfile()
+		em.X667().profile()
 		em.X680()
-		em.X680().DITProfile()
+		em.X680().profile()
 		em.X690()
-		em.X690().DITProfile()
-		em.DITProfile()
+		em.X690().profile()
+		em.Profile()
 		em.Root()
 		em.Spatial()
 		em.Supplement()
@@ -805,6 +837,12 @@ func bogusRegistration_codecov() error {
 		nilReg.Description()
 		nilReg.ObjectClasses()
 		nilReg.SeeAlso()
+		nilReg.LDIF(0)
+		nilReg.LDIF(0, true)
+		nilReg.LDIF(0, false)
+		nilReg.LDIF(2)
+		nilReg.LDIF(2, true)
+		nilReg.LDIF(2, false)
 		nilReg.TTL()
 		nilReg.X690().DotEncoding()
 		nilReg.X680().ASN1Notation()
@@ -813,7 +851,7 @@ func bogusRegistration_codecov() error {
 		nilReg.X680().NameAndNumberForm()
 		nilReg.X680().IRI()
 		nilReg.X680().N()
-		nilReg.X667().DITProfile()
+		nilReg.X667().profile()
 		nilReg.X667().RegisteredUUID()
 		nilReg.X660().LongArc()
 		nilReg.X660().marshal(ffunk)
@@ -848,11 +886,11 @@ func bogusRegistration_codecov() error {
 }
 
 func testBogusRegistrationGetters(nilReg *Registration) error {
-	nilReg.DITProfile()
-	nilReg.X660().DITProfile()
-	nilReg.X667().DITProfile()
-	nilReg.X680().DITProfile()
-	nilReg.X690().DITProfile()
+	nilReg.Profile()
+	nilReg.X660().profile()
+	nilReg.X667().profile()
+	nilReg.X680().profile()
+	nilReg.X690().profile()
 	nilReg.SetDITProfile(myCombinedProfile)
 	nilReg.Supplement().RC_DiscloseTo = []string{"testing"}
 	nilReg.Supplement().R_Class = "testing"
@@ -864,11 +902,16 @@ func testBogusRegistrationGetters(nilReg *Registration) error {
 	nilReg.Parent()
 	nilReg.R_DN = "n=1,n=3,n=1,ou=Registrations,o=rA"
 	nilReg.SetDITProfile(myCombinedProfile)
-	nilReg.DITProfile().R_TTL = "5"
+	nilReg.Profile().R_TTL = "5"
 	nilReg.R_DN = "testing"
 	nilReg.TTL()
 	nilReg.R_TTL = "testing"
 	nilReg.RC_TTL = "testing"
+	nilReg.X660()
+	nilReg.X660().r_root.Depth = 3
+	nilReg.X660().r_root.N = 2
+	nilReg.X660().R_LongArc = []string{"testing"}
+	nilReg.X660().LongArc()
 
 	for idx, funk := range []func(GetOrSetFunc) (any, error){
 		nilReg.DNGetFunc,

@@ -55,7 +55,7 @@ func (r *Registration) Supplement() *Supplement {
 
 	if r.R_Extra.IsZero() {
 		r.R_Extra = new(Supplement)
-		r.R_Extra.r_DITProfile = r.DITProfile()
+		r.R_Extra.r_DITProfile = r.Profile()
 	}
 
 	return r.R_Extra
@@ -72,7 +72,7 @@ func (r *Subentry) Supplement() *Supplement {
 
 	if r.R_Extra.IsZero() {
 		r.R_Extra = new(Supplement)
-		r.R_Extra.r_DITProfile = r.DITProfile()
+		r.R_Extra.r_DITProfile = r.Profile()
 	}
 
 	return r.R_Extra

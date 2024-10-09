@@ -97,7 +97,7 @@ func (r *Registration) Walk(id any) (reg *Registration) {
 	switch tv := id.(type) {
 	case string:
 		if _, a, err := cleanASN1(tv); err != nil {
-			if dot := trimL(tv, `.`); isNumericOID(dot) {
+			if dot := trimL(tv, `.`); IsNumericOID(dot) {
 				reg = r.walkN(split(dot, `.`))
 			}
 		} else {
@@ -204,7 +204,7 @@ func (r *Registration) Allocate(oid any, ident ...string) (reg *Registration) {
 func (r *Registration) allocateDotNot(o []string, ident ...string) (reg *Registration) {
 	var identifier string
 	if len(ident) > 0 {
-		if isIdentifier(ident[0]) {
+		if IsIdentifier(ident[0]) {
 			identifier = ident[0]
 		}
 	}
@@ -870,16 +870,7 @@ See [Section 2.2.3.4 of the RADUA I-D] for details related to TTL precedence.
 [Section 2.2.3.4 of the RADUA I-D]: https://datatracker.ietf.org/doc/html/draft-coretta-oiddir-radua#section-2.2.3.4
 */
 func (r *Registration) TTL() string {
-	ct := r.DITProfile().TTL()
-	lt := selectTTL(r.R_TTL, r.RC_TTL)
-
-	if lt == `` {
-		// If no localized TTL or COLLECTIVE TTL, then
-		// just return the DITProfile-based TTL.
-		return ct
-	}
-
-	return lt
+	return r.R_TTL
 }
 
 /*
@@ -1096,10 +1087,10 @@ func (r *Registration) IsNonRoot() (is bool) {
 }
 
 /*
-DITProfile returns the *[DITProfile] instance assigned to the receiver,
+Profile returns the *[DITProfile] instance assigned to the receiver,
 if set, else nil is returned.
 */
-func (r *Registration) DITProfile() (prof *DITProfile) {
+func (r *Registration) Profile() (prof *DITProfile) {
 	if !r.IsZero() {
 		if prof = r.R_DITProfile; !prof.Valid() {
 			prof = &DITProfile{}
@@ -1134,7 +1125,7 @@ is zero, false is returned.
 */
 func (r *Registration) Combined() bool {
 	if !r.IsZero() {
-		if dp := r.DITProfile(); !dp.IsZero() {
+		if dp := r.Profile(); !dp.IsZero() {
 			return dp.Combined()
 		}
 	}
@@ -1151,7 +1142,7 @@ is zero, false is returned.
 */
 func (r *Registration) Dedicated() bool {
 	if !r.IsZero() {
-		if dp := r.DITProfile(); !dp.IsZero() {
+		if dp := r.Profile(); !dp.IsZero() {
 			return dp.Dedicated()
 		}
 	}
@@ -1246,9 +1237,13 @@ LDIF returns the string LDIF form of the receiver instance.
 The input scope integer value defines the desired [search scope] for
 the output.
 
-  - A scope of zero (0) indicates 'baseObject' scoping, and is the default if unspecified
+  - A scope of zero (0) indicates 'baseObject' scoping
   - A scope of one (1) indicates 'singleLevel' scoping
   - Any other scope indicates 'wholeSubtree' scoping
+
+The subentries variadic input value indicates whether subentries, if
+associated with a given *[Registration], should be output.  This can
+only occur if the scope is either 0 (baseObject) or 2 (wholeSubtree).
 
 Note that this is a crude approximation of LDIF and should ideally be
 parsed through a reliable LDIF parser such as [go-ldap/ldif] to verify
@@ -1257,14 +1252,17 @@ integrity.
 [go-ldap/ldif]: https://pkg.go.dev/github.com/go-ldap/ldif
 [search scope]: https://datatracker.ietf.org/doc/html/rfc4511#section-4.5.1.2
 */
-func (r *Registration) LDIF(scope ...int) (l string) {
+func (r *Registration) LDIF(scope int, subentries ...bool) (l string) {
 
 	// Impose default search scope
 	var sscope int
-	if len(scope) > 0 {
-		if 0 <= scope[0] && scope[0] <= 2 {
-			sscope = scope[0]
-		}
+	var sents bool
+	if 0 <= scope && scope <= 2 {
+		sscope = scope
+	}
+
+	if len(subentries) > 0 {
+		sents = subentries[0]
 	}
 
 	baseObject := func() string {
@@ -1299,32 +1297,81 @@ func (r *Registration) LDIF(scope ...int) (l string) {
 	if !r.IsZero() {
 		bld := newBuilder()
 
-		K := r.Children()
-		LK := K.Len()
-
 		switch sscope {
 		case 0:
 			bld.WriteString(baseObject())
+			bld.WriteRune(10)
+
+			if sents {
+				subs := r.Subentries()
+				for _, sub := range *subs {
+					if !sub.IsZero() {
+						bld.WriteString(sub.LDIF())
+					}
+				}
+			}
 			l = bld.String()
 		case 1:
-			for i := 0; i < LK; i++ {
-				if sub := K.Index(i); !sub.IsZero() {
-					bld.WriteString(sub.LDIF()) // no scope == baseObject
+			for i := 0; i < r.Children().Len(); i++ {
+				if sub := r.Children().Index(i); !sub.IsZero() {
+					bld.WriteString(sub.LDIF(0)) // no scope == baseObject
 					bld.WriteRune(10)
 				}
 			}
-			l += bld.String()
+			l = bld.String()
 		default:
 			// include baseObject as first returned entry.
 			bld.WriteString(baseObject())
 			bld.WriteRune(10)
+			l = bld.String()
+			l += r.subtreeLDIF(sents)
+		}
+	}
 
-			for i := 0; i < LK; i++ {
-				if sub := K.Index(i); !sub.IsZero() {
-					bld.WriteString(sub.LDIF(2)) // recurse subtree indefinitely
-				}
+	return
+}
+
+func (r *Registration) subtreeLDIF(sents bool) (l string) {
+	bld := newBuilder()
+
+	if sents {
+		subs := r.Subentries()
+		for _, sub := range *subs {
+			if !sub.IsZero() {
+				bld.WriteString(sub.LDIF())
 			}
-			l += bld.String()
+		}
+	}
+
+	for i := 0; i < r.Children().Len(); i++ {
+		if ent := r.Children().Index(i); !ent.IsZero() {
+			bld.WriteString(ent.LDIF(2, sents)) // recurse subtree indefinitely
+		}
+	}
+
+	l = bld.String()
+
+	return
+}
+
+/*
+Subentry initializes and returns a new instance of *[Subentry] as an
+immediate child of the receiver instance. The return instance is also
+added to the receiver's underlying [Subentries] instance.
+
+Note that this method does NOT add the DN of the new *[Subentry] to the
+"[collectiveAttributeSubentries]" field value, as this is only populated
+based on search results obtained from the DSA.
+
+[collectiveAttributeSubentries]: https://www.rfc-editor.org/rfc/rfc3671.html#section-2.2
+*/
+func (r *Registration) NewSubentry(cn string) (s *Subentry) {
+	if !r.IsZero() && len(cn) > 0 {
+		if dn := r.DN(); dn != "" {
+			s = r.Profile().NewSubentry()
+			s.SetDN(`cn=` + cn + `,` + dn)
+			s.SetCN(cn)
+			r.Subentries().Push(s)
 		}
 	}
 
@@ -1357,14 +1404,14 @@ func (r *Registration) NewChild(nf, id string) (s *Registration) {
 		dotp += `.` + nf // complete the new dotNotation
 
 		var oiv string
-		_s := r.DITProfile().NewRegistration()
+		_s := r.Profile().NewRegistration()
 		if a1 := r.X680().ASN1Notation(); len(nanf) > 0 && len(a1) > 0 {
 			oiv = trimR(a1, `}`) + ` ` + nanf + `}`
 		}
 
 		var this string = r.DN()
 		var cdn string
-		if r.DITProfile().Model() == TwoDimensional {
+		if r.Profile().Model() == TwoDimensional {
 			if idx := idxr(this, ','); idx != -1 {
 				cdn = `dotNotation=` + dotp + `,` + this[idx+1:]
 			}
@@ -1447,13 +1494,13 @@ func (r *Registration) NewSibling(nf, id string) (s *Registration) {
 		switch {
 		case r.IsRoot():
 			dotp = ``
-			_s = r.DITProfile().NewRegistration(true)
+			_s = r.Profile().NewRegistration(true)
 			if len(nanf) > 0 {
 				oiv = `{` + nanf + `}`
 			}
 		case r.IsNonRoot():
 			dotp += `.` + nf
-			_s = r.DITProfile().NewRegistration()
+			_s = r.Profile().NewRegistration()
 			a1 := r.X680().ASN1Notation()
 			if len(nanf) > 0 && len(a1) > 0 {
 				poiv := split(a1[1:len(a1)-1], ` `)
@@ -1507,7 +1554,7 @@ func (r *Registration) sibOrSub(nf, id string, sib bool) (ident, nanf, dotp, dnp
 	}
 
 	if len(id) > 0 {
-		if !isIdentifier(id) {
+		if !IsIdentifier(id) {
 			// bogus non-zero identifier
 			return
 		}

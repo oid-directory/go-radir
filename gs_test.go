@@ -95,7 +95,7 @@ func TestGS_codecov(t *testing.T) {
 		`_`,
 		`hell--o`,
 	} {
-		if isIdentifier(ident) {
+		if IsIdentifier(ident) {
 			t.Errorf("%s: expected error, got nothing", t.Name())
 			return
 		}
@@ -114,7 +114,6 @@ func TestGS_codecov(t *testing.T) {
 	_, _, _ = cleanASN1(`{iso someThing(X)}`)
 	isNumber(`x`)
 	isNumber(``)
-	assertTTL(``)
 	rootClass(-1)
 	getRoot('E')
 	getRoot('0')

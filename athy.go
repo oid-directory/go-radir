@@ -220,7 +220,7 @@ is zero, false is returned.
 */
 func (r *Registrant) Dedicated() bool {
 	if !r.IsZero() {
-		if dp := r.DITProfile(); !dp.IsZero() {
+		if dp := r.Profile(); !dp.IsZero() {
 			return dp.Dedicated()
 		}
 	}
@@ -328,14 +328,7 @@ when handling multiple TTL directives.
 [Section 2.2.3.4 of the RADUA I-D]: https://datatracker.ietf.org/doc/html/draft-coretta-oiddir-radua#section-2.2.3.4
 */
 func (r *Registrant) TTL() string {
-	ct := r.DITProfile().TTL()
-	lt := selectTTL(r.R_TTL, r.R_TTL)
-
-	if lt == `` {
-		return ct
-	}
-
-	return lt
+	return r.R_TTL
 }
 
 /*
@@ -465,10 +458,10 @@ func (r *Registrant) StructuralObjectClassGetFunc(getfunc GetOrSetFunc) (any, er
 }
 
 /*
-DITProfile returns the *[DITProfile] instance assigned to the receiver,
+Profile returns the *[DITProfile] instance assigned to the receiver,
 if set, else a freshly initialized instance is returned.
 */
-func (r *Registrant) DITProfile() (prof *DITProfile) {
+func (r *Registrant) Profile() (prof *DITProfile) {
 	if prof = r.R_DITProfile; prof == nil {
 		prof = &DITProfile{}
 	}
@@ -486,7 +479,7 @@ func (r *Registrant) Unmarshal() (outer map[string][]string) {
 		return
 	}
 
-	if dc := r.DITProfile(); !dc.Dedicated() {
+	if dc := r.Profile(); !dc.Dedicated() {
 		// You're trying to use something that is
 		// antithetical to "combined" reg pols.
 		return
@@ -529,7 +522,7 @@ func (r *Registrant) Marshal(meth func(any) error) (err error) {
 		return
 	}
 
-	if dc := r.DITProfile(); !dc.Dedicated() {
+	if dc := r.Profile(); !dc.Dedicated() {
 		// You're trying to use something that is
 		// antithetical to "combined" reg pols.
 		err = RegistrantPolicyErr

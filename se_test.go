@@ -74,7 +74,7 @@ func TestSubentry_codecov(t *testing.T) {
 	subentry.Kind()
 	subentry.r_DITProfile = &DITProfile{}
 	subentry.SetDITProfile(&DITProfile{})
-	subentry.DITProfile()
+	subentry.Profile()
 	subentry.SetDN(`n=1,ou=Registrations,o=rA`)
 	subentry.SetDITProfile(myDedicatedProfile)
 	subentry.TTL()
