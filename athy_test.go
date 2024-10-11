@@ -174,6 +174,7 @@ func TestAuthority_codecov(t *testing.T) {
 	regs.Push(&Registrant{R_Id: `meat`})
 	regs.LDIF()
 	regs.Index(0)
+	regs.Index(-1)
 	regs.Contains(`meat`)
 	regs.Contains(`meats`)
 	regs.Get(`meat`)
