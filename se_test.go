@@ -12,6 +12,7 @@ func TestSubentry_codecov(t *testing.T) {
 	subentries.Len()
 	subentries.Get(`hello`)
 	subentries.Contains(`hello`)
+	subentries.Index(-1)
 	subentries.Index(21)
 	subentries.IsZero()
 
@@ -105,6 +106,7 @@ func TestSubentry_codecov(t *testing.T) {
 
 	subentries = &sents
 	subentries.Push(subentry)
+	subentries.Index(-1)
 
 	subentries.IsZero()
 	subentries.Get(`hello`)

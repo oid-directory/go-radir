@@ -780,6 +780,7 @@ func bogusRegistration_codecov() error {
 		regs = append(regs, nilReg)
 		regs.Unmarshal()
 		regs.Index(0)
+		regs.Index(-1)
 		regs.Index(0).Size()
 
 		nilReg.X680().dotNotationHandler(``)

@@ -514,12 +514,14 @@ func (r *Registrations) Len() (l int) {
 Index returns the Nth *[Registration] instance within the receiver instance,
 or a zero instance if not found.
 */
-func (r *Registrations) Index(idx int) (reg *Registration) {
-	if !r.IsZero() {
-		if 0 <= idx && idx < r.Len() {
-			reg = (*r)[idx]
-		}
-	}
+func (r *Registrations) Index(idx int) (got *Registration) {
+        if L := r.Len(); L > 0 {                                        
+                if 0 <= idx && idx <= L-1 {                                
+                        got = (*r)[idx]                                 
+                } else if idx == -1 {                                   
+                        got = (*r)[L-1]                                 
+                }                                                       
+        } 
 
 	return
 }

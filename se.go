@@ -123,10 +123,12 @@ func (r *Subentries) Len() (l int) {
 Index returns the Nth slice member found within the receiver instance.
 */
 func (r *Subentries) Index(idx int) (got *Subentry) {
-	if !r.IsZero() {
-		if 0 <= idx && idx <= r.Len()-1 {
-			got = (*r)[idx]
-		}
+	if L := r.Len(); L > 0 {
+                if 0 <= idx && idx < L {                                
+                        got = (*r)[idx]                                 
+                } else if idx == -1 {                                   
+                        got = (*r)[L-1]                                 
+                }
 	}
 
 	return
