@@ -515,13 +515,13 @@ Index returns the Nth *[Registration] instance within the receiver instance,
 or a zero instance if not found.
 */
 func (r *Registrations) Index(idx int) (got *Registration) {
-        if L := r.Len(); L > 0 {                                        
-                if 0 <= idx && idx <= L-1 {                                
-                        got = (*r)[idx]                                 
-                } else if idx == -1 {                                   
-                        got = (*r)[L-1]                                 
-                }                                                       
-        } 
+	if L := r.Len(); L > 0 {
+		if 0 <= idx && idx <= L-1 {
+			got = (*r)[idx]
+		} else if idx == -1 {
+			got = (*r)[L-1]
+		}
+	}
 
 	return
 }

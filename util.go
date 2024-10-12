@@ -359,11 +359,33 @@ func getFieldByNameTag(instance any, tag string) (reflect.Value, error) {
 	return reflect.Value{}, errorf("field with tag %s not found", tag)
 }
 
+func isCollectiveTag(tag string) bool {
+	tag = lc(tag)
+	return hasPfx(tag, `c-`) || hasSfx(tag, `;collective`)
+}
+
 func writeFieldByTag(tag string, funk func(...any) error, instance any, args ...any) error {
 
 	X, Y, err := chkSetterInput(args...)
 	if err != nil {
 		return err
+	}
+
+	var inSubentry bool
+	switch tv := instance.(type) {
+	case *X660:
+		inSubentry = tv.r_se
+	case *Spatial:
+		inSubentry = tv.r_se
+	case *Supplement:
+		inSubentry = tv.r_se
+	}
+
+	if !inSubentry && isCollectiveTag(tag) {
+		// do not set collective values for any instance that
+		// is not known to reside within a Subentry instance.
+		// But, don't throw an error.
+		return nil
 	}
 
 	if Y == nil {

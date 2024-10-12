@@ -21,6 +21,8 @@ type Spatial struct {
 	RC_TopArc string `ldap:"c-topArc;collective"` // RASCHEMA § 2.3.24
 	RC_MinArc string `ldap:"c-minArc;collective"` // RASCHEMA § 2.3.28
 	RC_MaxArc string `ldap:"c-maxArc;collective"` // RASCHEMA § 2.3.31
+
+	r_se bool
 }
 
 /*
@@ -31,6 +33,8 @@ func (r *Registration) Spatial() *Spatial {
 	if r.IsZero() {
 		return &Spatial{}
 	}
+
+	//
 
 	if r.R_Spatial.IsZero() {
 		r.R_Spatial = new(Spatial)
@@ -50,6 +54,7 @@ func (r *Subentry) Spatial() *Spatial {
 
 	if r.R_Spatial.IsZero() {
 		r.R_Spatial = new(Spatial)
+		r.R_Spatial.r_se = true
 	}
 
 	return r.R_Spatial
@@ -153,6 +158,15 @@ func (r *Spatial) CMinArcGetFunc(getfunc GetOrSetFunc) (any, error) {
 }
 
 /*
+SetCMinArc assigns the string DN value to the receiver instance. Note that this
+will only have an effect if the receiver instance was originally initialized in
+an instance of *[Subentry].
+*/
+func (r *Spatial) SetCMinArc(args ...any) error {
+	return writeFieldByTag(`c-minArc;collective`, r.SetCMinArc, r, args...)
+}
+
+/*
 SetMinArc assigns the string DN value to the receiver instance.
 */
 func (r *Spatial) SetMinArc(args ...any) error {
@@ -196,6 +210,15 @@ SetMaxArc assigns the string DN value to the receiver instance.
 */
 func (r *Spatial) SetMaxArc(args ...any) error {
 	return writeFieldByTag(`maxArc`, r.SetMaxArc, r, args...)
+}
+
+/*
+SetCMaxArc assigns the string DN value to the receiver instance. Note that this
+will only have an effect if the receiver instance was originally initialized in
+an instance of *[Subentry].
+*/
+func (r *Spatial) SetCMaxArc(args ...any) error {
+	return writeFieldByTag(`c-maxArc;collective`, r.SetCMaxArc, r, args...)
 }
 
 /*
@@ -262,6 +285,15 @@ func (r *Spatial) TopArcGetFunc(getfunc GetOrSetFunc) (any, error) {
 }
 
 /*
+SetCTopArc assigns the string DN value to the receiver instance. Note that this
+will only have an effect if the receiver instance was originally initialized in
+an instance of *[Subentry].
+*/
+func (r *Spatial) SetCTopArc(args ...any) error {
+	return writeFieldByTag(`c-topArc;collective`, r.SetCTopArc, r, args...)
+}
+
+/*
 SetTopArc assigns the string DN value to the receiver instance.
 */
 func (r *Spatial) SetTopArc(args ...any) error {
@@ -282,6 +314,15 @@ or a zero string if unset.
 */
 func (r *Spatial) CSupArc() string {
 	return r.RC_SupArc
+}
+
+/*
+SetCSupArc assigns the string DN value to the receiver instance. Note that this
+will only have an effect if the receiver instance was originally initialized in
+an instance of *[Subentry].
+*/
+func (r *Spatial) SetCSupArc(args ...any) error {
+	return writeFieldByTag(`c-supArc;collective`, r.SetCSupArc, r, args...)
 }
 
 /*

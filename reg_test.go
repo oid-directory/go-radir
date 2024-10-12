@@ -412,8 +412,11 @@ func TestITUXSeries_unmarshal(t *testing.T) {
 	z.SetSecondaryIdentifier(`org`)
 	z.SetStdNameForm(`{org}`)
 	z.SetFirstAuthorities(`cn=Predecessor,...`)
+	z.SetCFirstAuthorities(`cn=Predecessor,...`)
 	z.SetCurrentAuthorities(`cn=You,...`)
+	z.SetCCurrentAuthorities(`cn=You,...`)
 	z.SetSponsors(`cn=Your Sponsor,...`)
+	z.SetCSponsors(`cn=Your Sponsor,...`)
 	z.CombinedSponsor().SetCN("cn=Your Combined Sponsor,...")
 	um := z.unmarshal()
 	zval := um[`unicodeValue`][0]
@@ -571,6 +574,12 @@ func TestRegistrations(t *testing.T) {
 	nreg2.X680().SetDotNotation(o2)
 	nreg2.X680().SetN(`2`)
 	nreg2.Spatial().SetTopArc("n=1,ou=Registrations,o=rA")
+	nreg2.Spatial().SetCTopArc("n=bad,ou=Registrations,o=rA")
+	if nreg2.Spatial().CTopArc() != "" {
+		t.Errorf("%s failed: collective attribute assigned to non-Subentry component", t.Name())
+		return
+	}
+
 	nreg2.Spatial().SetSupArc(`n=18,n=999,n=56521,n=1,n=4,n=1,n=6,n=3,n=1,ou=Registrations,o=rA`)
 	_ = nreg2.NewChild(`33`, `thisName`) // no need for var
 	nreg2.Children().SetYAxes(true)
@@ -804,7 +813,11 @@ func bogusRegistration_codecov() error {
 		nilReg.R_SOC = ``
 		nilReg.NewChild(`1`, `this`)
 		nilReg.NewSibling(`2`, `that`)
-		nilReg.NewSubentry(`subentry`)
+		subent := nilReg.NewSubentry(`subentry`)
+		subent.X660().SetCCurrentAuthorities(`someone`)
+		subent.X660().SetCFirstAuthorities(`someone`)
+		subent.X660().SetCSponsors(`someone`)
+		subent.Supplement().SetCDiscloseTo(`reader`)
 
 		var em *Registration
 		em.X660()

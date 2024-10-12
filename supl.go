@@ -1,7 +1,8 @@
 package radir
 
 /*
-extra.go contains all
+extra.go contains all non-standard or supplemental elements related to
+registry entries.
 */
 
 /*
@@ -42,6 +43,7 @@ type Supplement struct {
 	RC_DiscloseTo []string `ldap:"c-discloseTo;collective"` // RASCHEMA § 2.3.33
 
 	r_DITProfile *DITProfile
+	r_se         bool
 }
 
 /*
@@ -73,6 +75,7 @@ func (r *Subentry) Supplement() *Supplement {
 	if r.R_Extra.IsZero() {
 		r.R_Extra = new(Supplement)
 		r.R_Extra.r_DITProfile = r.Profile()
+		r.R_Extra.r_se = true
 	}
 
 	return r.R_Extra
@@ -386,6 +389,16 @@ Note that if a slice is passed as X, the destination value will be clobbered.
 */
 func (r *Supplement) SetDiscloseTo(args ...any) error {
 	return writeFieldByTag(`discloseTo`, r.SetDiscloseTo, r, args...)
+}
+
+/*
+SetCDiscloseTo appends one or more string DN values to the receiver instance.
+Note that if a slice is passed as X, the destination value will be clobbered.
+Also note that this method will only have an effect if executed upon an instance
+which was initialized within an instance of *[Subentry].
+*/
+func (r *Supplement) SetCDiscloseTo(args ...any) error {
+	return writeFieldByTag(`c-discloseTo;collective`, r.SetDiscloseTo, r, args...)
 }
 
 /*

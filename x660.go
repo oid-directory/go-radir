@@ -45,6 +45,7 @@ type X660 struct {
 
 	r_DITProfile *DITProfile
 	r_root       *registeredRoot // linked from *Registration during init
+	r_se         bool
 }
 
 /*
@@ -76,6 +77,7 @@ func (r *Subentry) X660() *X660 {
 		r.R_X660 = new(X660)
 		r.R_X660.r_DITProfile = r.Profile()
 		r.R_X660.r_root = r.r_root
+		r.R_X660.r_se = true
 	}
 
 	return r.R_X660
@@ -328,6 +330,22 @@ func (r *X660) SetCurrentAuthorities(args ...any) error {
 }
 
 /*
+SetCCurrentAuthorities appends one or more string DN values to the receiver
+instance. Note that if a slice is passed as X, the destination value will
+be clobbered.
+
+Note that use of this method is only useful when operating under the
+terms of the "Dedicated Registrants Policy" and only when the receiver
+instance was initialized within an instance of *[Subentry].
+*/
+func (r *X660) SetCCurrentAuthorities(args ...any) error {
+	if !r.profile().Dedicated() {
+		return RegistrantPolicyErr
+	}
+	return writeFieldByTag(`c-currentAuthority;collective`, r.SetCurrentAuthorities, r, args...)
+}
+
+/*
 CurrentAuthoritiesGetFunc processes the underlying string DN field values
 through the provided [GetOrSetFunc] instance, returning an interface value
 alongside an error.
@@ -371,6 +389,23 @@ func (r *X660) SetFirstAuthorities(args ...any) error {
 	}
 
 	return writeFieldByTag(`firstAuthority`, r.SetFirstAuthorities, r, args...)
+}
+
+/*
+SetCFirstAuthorities appends one or more string DN values to the receiver
+instance. Note that if a slice is passed as X, the destination value will
+be clobbered.
+
+Note that use of this method is only useful when operating under the
+terms of the "Dedicated Registrants Policy", and only when the receiver
+instance was initialized within an instance of *[Subentry].
+*/
+func (r *X660) SetCFirstAuthorities(args ...any) error {
+	if !r.profile().Dedicated() {
+		return RegistrantPolicyErr
+	}
+
+	return writeFieldByTag(`c-firstAuthority;collective`, r.SetFirstAuthorities, r, args...)
 }
 
 /*
@@ -478,6 +513,22 @@ func (r *X660) SetSponsors(args ...any) error {
 	}
 
 	return writeFieldByTag(`sponsor`, r.SetSponsors, r, args...)
+}
+
+/*
+SetCSponsors appends one or more string DN values to the receiver instance.
+Note that if a slice is passed as X, the destination value will be clobbered.
+
+Note that use of this method is only useful when operating under the
+terms of the "Dedicated Registrants Policy" and only when the receiver
+instance was initialized within an instance of *[Subentry].
+*/
+func (r *X660) SetCSponsors(args ...any) error {
+	if !r.profile().Dedicated() {
+		return RegistrantPolicyErr
+	}
+
+	return writeFieldByTag(`c-sponsor;collective`, r.SetSponsors, r, args...)
 }
 
 /*

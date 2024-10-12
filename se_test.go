@@ -66,7 +66,15 @@ func TestSubentry_codecov(t *testing.T) {
 	subentry.CNGetFunc(nil)
 	subentry.X660()
 	subentry.IsZero()
-	subentry.Spatial()
+	subentry.Spatial().SetCTopArc("n=x,ou=Registrations,o=rA")
+	subentry.Spatial().SetCSupArc("n=parent,n=x,ou=Registrations,o=rA")
+	subentry.Spatial().SetCMinArc("n=first,n=x,ou=Registrations,o=rA")
+	subentry.Spatial().SetCMaxArc("n=final,n=x,ou=Registrations,o=rA")
+	if subentry.Spatial().CTopArc() == "" {
+		t.Errorf("%s failed: collective value not assigned to subentry", t.Name())
+		return
+	}
+
 	subentry.isEmpty()
 	subentry.StructuralObjectClass()
 	subentry.DN()

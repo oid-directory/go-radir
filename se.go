@@ -124,11 +124,11 @@ Index returns the Nth slice member found within the receiver instance.
 */
 func (r *Subentries) Index(idx int) (got *Subentry) {
 	if L := r.Len(); L > 0 {
-                if 0 <= idx && idx < L {                                
-                        got = (*r)[idx]                                 
-                } else if idx == -1 {                                   
-                        got = (*r)[L-1]                                 
-                }
+		if 0 <= idx && idx < L {
+			got = (*r)[idx]
+		} else if idx == -1 {
+			got = (*r)[L-1]
+		}
 	}
 
 	return
@@ -280,6 +280,7 @@ func (r *Subentry) LDIF() (l string) {
 			bld.WriteString(toLDIF(r))
 			bld.WriteString(r.X660().ldif())
 			bld.WriteString(r.Spatial().ldif())
+			bld.WriteRune(10)
 
 			l = bld.String()
 		}
