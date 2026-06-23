@@ -3,3 +3,14 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/oid-directory/go-radir)](https://goreportcard.com/report/github.com/oid-directory/go-radir) [![Go Reference](https://pkg.go.dev/badge/github.com/oid-directory/go-radir.svg)](https://pkg.go.dev/github.com/oid-directory/go-radir) ![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square) ![Volatility Warning](https://img.shields.io/badge/volatile-darkred?label=%F0%9F%92%A5&labelColor=white&color=orange&cacheSeconds=86400)
 
 Package radir implements subsets of the ***EXPERIMENTAL*** OID Directory I-D series.
+
+## About
+
+This package serves as the de facto Go-based OID-Directory library. It is the foundation of the entire OID-Directory Internet-Draft series, offering myriad functions, types and methods for use in creating an ASN.1 Object Identifier repository within an X.500 or LDAP architecture.
+
+The go-radit (Directory Information Tree) and go-radua (Directory User Agent) packages rely upon go-radir.
+
+## OID Utility
+
+This package includes a subdirectory package known simply as "oid". It offers DotNotation, ASN1Notation and IRINotation types for expressing the various incarnations of Object Identifiers. See the package documentation for extensive information on making use of this package.
+
