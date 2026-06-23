@@ -1,7 +1,7 @@
 package radir
 
 /*
-reg.go contains Registration methods.
+reg.go contains Registration types and methods.
 */
 
 import (
