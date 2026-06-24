@@ -1,3 +1,3 @@
 module github.com/oid-directory/go-radir
 
-go 1.25.5
+go 1.25
