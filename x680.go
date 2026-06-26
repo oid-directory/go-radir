@@ -20,13 +20,14 @@ Instances of this type need not be initialized by the user directly.
 [ITU-T Rec. X.680]: https://www.itu.int/rec/T-REC-X.680
 */
 type X680 struct {
-	R_N          string   `ldap:"n"`                 // RASCHEMA § 2.3.1
-	R_ASN1Not    string   `ldap:"aSN1Notation"`      // RASCHEMA § 2.3.4
-	R_DotNot     string   `ldap:"dotNotation"`       // RASCHEMA § 2.3.2
-	R_Id         string   `ldap:"identifier"`        // RASCHEMA § 2.3.7
-	R_NaNF       string   `ldap:"nameAndNumberForm"` // RASCHEMA § 2.3.19
-	R_IRI        []string `ldap:"iRI"`               // RASCHEMA § 2.3.3
-	r_DITProfile *DITProfile
+	R_N          string   `ldap:"n" json:"n"`                 		  // RASCHEMA § 2.3.1
+	R_ASN1Not    string   `ldap:"aSN1Notation" json:"aSN1Notation"`      	  // RASCHEMA § 2.3.4
+	R_DotNot     string   `ldap:"dotNotation" json:"dotNotation"`       	  // RASCHEMA § 2.3.2
+	R_Id         string   `ldap:"identifier" json:"identifier"`        	  // RASCHEMA § 2.3.7
+	R_NaNF       string   `ldap:"nameAndNumberForm" json:"nameAndNumberForm"` // RASCHEMA § 2.3.19
+	R_IRI        []string `ldap:"iRI" json:"iRI"`               		  // RASCHEMA § 2.3.3
+
+	r_DITProfile *DITProfile `json:"-"`
 	r_root       *registeredRoot
 }
 
@@ -357,3 +358,4 @@ func (r *X680) Depth() (d int) {
 
 	return
 }
+

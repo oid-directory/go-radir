@@ -20,22 +20,22 @@ three (3) embedded types:
 [Section 3.2.1.1.1 of the RADIT I-D]: https://datatracker.ietf.org/doc/html/draft-coretta-oiddir-radit#section-3.2.1.1.1
 */
 type Registrant struct {
-	R_DN   string   `ldap:"dn"`
-	R_GSR  string   `ldap:"governingStructureRule"`
-	R_Id   string   `ldap:"registrantID"`       // RASCHEMA § 2.3.34
-	R_TTL  string   `ldap:"rATTL"`              // RASCHEMA § 2.3.100
-	RC_TTL string   `ldap:"c-rATTL;collective"` // RASCHEMA § 2.3.101
-	R_SOC  string   `ldap:"structuralObjectClass"`
-	R_CAS  []string `ldap:"collectiveAttributeSubentries"`
-	R_OC   []string `ldap:"objectClass"`
-	R_Desc []string `ldap:"description"`
-	R_Also []string `ldap:"seeAlso"`
+	R_DN   string   `ldap:"dn" json:"dn"`
+	R_GSR  string   `ldap:"governingStructureRule" json:"governingStructureRule,omitempty"`
+	R_Id   string   `ldap:"registrantID" json:"registrantID"`            // RASCHEMA § 2.3.34
+	R_TTL  string   `ldap:"rATTL" json:"rATTL,omitempty"`                // RASCHEMA § 2.3.100
+	RC_TTL string   `ldap:"c-rATTL;collective" json:"c-rATTL,omitempty"` // RASCHEMA § 2.3.101
+	R_SOC  string   `ldap:"structuralObjectClass" json:"structuralObjectClass"`
+	R_CAS  []string `ldap:"collectiveAttributeSubentries" json:"collectiveAttributeSubentries,omitempty"`
+	R_OC   []string `ldap:"objectClass" json:"objectClass"`
+	R_Desc []string `ldap:"description" json:"description,omitempty"`
+	R_Also []string `ldap:"seeAlso" json:"seeAlso,omitempty"`
 
-	R_DITProfile *DITProfile `ldap:"-"`
+	R_DITProfile *DITProfile `json:"-"`
 
-	R_CA *CurrentAuthority
-	R_FA *FirstAuthority
-	R_SA *Sponsor
+	R_CA *CurrentAuthority `json:"currentAuthority"`
+	R_FA *FirstAuthority   `json:"firstAuthority"`
+	R_SA *Sponsor          `json:"sponsor"`
 }
 
 /*
@@ -709,3 +709,4 @@ type authority interface {
 	Street() string
 	URI() []string
 }
+

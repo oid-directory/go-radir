@@ -1,8 +1,7 @@
 package radir
 
 /*
-extra.go contains all non-standard or supplemental elements related to
-registry entries.
+extra.go contains all
 */
 
 /*
@@ -29,21 +28,32 @@ optional assignment to *[Registration] instances.
 [registrationSupplement]: https://datatracker.ietf.org/doc/html/draft-coretta-oiddir-schema#section-2.5.12
 */
 type Supplement struct {
-	R_Status   string   `ldap:"registrationStatus"`         // RASCHEMA § 2.3.14, RFC 2578 § 2
-	R_Class    string   `ldap:"registrationClassification"` // RASCHEMA § 2.3.15
-	R_Created  string   `ldap:"registrationCreated"`        // RASCHEMA § 2.3.11
-	R_Frozen   string   `ldap:"isFrozen"`                   // RASCHEMA § 2.3.17
-	R_LeafNode string   `ldap:"isLeafNode"`                 // RASCHEMA § 2.3.16
-	R_Range    string   `ldap:"registrationRange"`          // RASCHEMA § 2.3.13
-	R_Info     []string `ldap:"registrationInformation"`    // RASCHEMA § 2.3.9
-	R_Modified []string `ldap:"registrationModified"`       // RASCHEMA § 2.3.12, RFC 2578 § 2
-	R_URI      []string `ldap:"registrationURI"`            // RASCHEMA § 2.3.10
+	// RASCHEMA § 2.3.14, RFC 2578 § 2
+	R_Status   string   `ldap:"registrationStatus" json:"registrationStatus,omitempty"`
+	// RASCHEMA § 2.3.15
+	R_Class    string   `ldap:"registrationClassification" json:"registrationClassification,omitempty"`
+	// RASCHEMA § 2.3.11
+	R_Created  string   `ldap:"registrationCreated" json:"registrationCreated,omitempty"`
+	// RASCHEMA § 2.3.17
+	R_Frozen   string   `ldap:"isFrozen" json:"isFrozen,omitempty"`
+	// RASCHEMA § 2.3.16
+	R_LeafNode string   `ldap:"isLeafNode" json:"isleafNode,omitempty"`
+	// RASCHEMA § 2.3.13
+	R_Range    string   `ldap:"registrationRange" json:"registrationRange,omitempty"`
+	// RASCHEMA § 2.3.9
+	R_Info     []string `ldap:"registrationInformation" json:"registrationInformation,omitempty"`
+	// RASCHEMA § 2.3.12, RFC 2578 § 2
+	R_Modified []string `ldap:"registrationModified" json:"registrationModified,omitempty"`
+	// RASCHEMA § 2.3.10
+	R_URI      []string `ldap:"registrationURI" json:"registrationURI,omitempty"`
 
-	R_DiscloseTo  []string `ldap:"discloseTo"`              // RASCHEMA § 2.3.32
-	RC_DiscloseTo []string `ldap:"c-discloseTo;collective"` // RASCHEMA § 2.3.33
+	// RASCHEMA § 2.3.32
+	R_DiscloseTo  []string `ldap:"discloseTo" json:"discloseTo,omitempty"`
+	// RASCHEMA § 2.3.33
+	RC_DiscloseTo []string `ldap:"c-discloseTo;collective" json:"c-discloseTo,omitempty"`
 
-	r_DITProfile *DITProfile
-	r_se         bool
+	r_DITProfile *DITProfile `"json:"-"`
+	r_se 	     bool
 }
 
 /*
@@ -409,3 +419,4 @@ an error.
 func (r *Supplement) DiscloseToGetFunc(getfunc GetOrSetFunc) (any, error) {
 	return getFieldValueByNameTagAndGoSF(r, getfunc, `discloseTo`)
 }
+

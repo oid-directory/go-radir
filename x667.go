@@ -16,9 +16,9 @@ Instances of this type need not be initialized by the user directly.
 [ITU-T Rec. X.667]: https://www.itu.int/rec/T-REC-X.667
 */
 type X667 struct {
-	R_UUID string `ldap:"registeredUUID"` // RASCHEMA § 2.3.102
+	R_UUID string `ldap:"registeredUUID" json:"registeredUUID,omitempty"` // RASCHEMA § 2.3.102
 
-	r_DITProfile *DITProfile
+	r_DITProfile *DITProfile `json:"-"`
 	r_root       *registeredRoot
 }
 
@@ -124,3 +124,4 @@ value alongside an error.
 func (r *X667) RegisteredUUIDGetFunc(getfunc GetOrSetFunc) (any, error) {
 	return getFieldValueByNameTagAndGoSF(r, getfunc, `registeredUUID`)
 }
+

@@ -17,24 +17,24 @@ type Sponsor struct {
 	// Primary draft-based attribute types for authorities. These
 	// represent the default types/fields that will be used for an
 	// authority of this form.
-	R_L         string   `ldap:"sponsorLocality"`
-	R_O         string   `ldap:"sponsorOrg"`
-	R_C         string   `ldap:"sponsorCountryCode"`
-	R_CO        string   `ldap:"sponsorCountryName"`
-	R_ST        string   `ldap:"sponsorState"`
-	R_CN        string   `ldap:"sponsorCommonName"`
-	R_Tel       string   `ldap:"sponsorTelephone"`
-	R_Fax       string   `ldap:"sponsorFax"`
-	R_Title     string   `ldap:"sponsorTitle"`
-	R_Email     string   `ldap:"sponsorEmail"`
-	R_POBox     string   `ldap:"sponsorPOBox"`
-	R_PCode     string   `ldap:"sponsorPostalCode"`
-	R_PAddr     string   `ldap:"sponsorPostalAddress"`
-	R_Street    string   `ldap:"sponsorStreet"`
-	R_Mobile    string   `ldap:"sponsorMobile"`
-	R_StartTime string   `ldap:"sponsorStartTimestamp"`
-	R_EndTime   string   `ldap:"sponsorEndTimestamp"`
-	R_URI       []string `ldap:"sponsorURI"`
+        R_L         string   `ldap:"sponsorLocality" json:"sponsorLocality,omitempty"`
+        R_O         string   `ldap:"sponsorOrg" json:"sponsorOrg,omitempty"`
+        R_C         string   `ldap:"sponsorCountryCode" json:"sponsorCountryCode,omitempty"`
+        R_CO        string   `ldap:"sponsorCountryName" json:"sponsorCountryName,omitempty"`
+        R_ST        string   `ldap:"sponsorState" json:"sponsorState,omitempty"`
+        R_CN        string   `ldap:"sponsorCommonName" json:"sponsorCommonName,omitempty"`
+        R_Tel       string   `ldap:"sponsorTelephone" json:"sponsorTelephone,omitempty"`
+        R_Fax       string   `ldap:"sponsorFax" json:"sponsorFax,omitempty"`
+        R_Title     string   `ldap:"sponsorTitle" json:"sponsorTitle,omitempty"`
+        R_Email     string   `ldap:"sponsorEmail" json:"sponsorEmail,omitempty"`
+        R_POBox     string   `ldap:"sponsorPOBox" json:"sponsorPOBox,omitempty"`
+        R_PCode     string   `ldap:"sponsorPostalCode" json:"sponsorPostalCode,omitempty"`
+        R_PAddr     string   `ldap:"sponsorPostalAddress" json:"sponsorPostalAddress,omitempty"`
+        R_Street    string   `ldap:"sponsorStreet" json:"sponsorStreet,omitempty"`
+        R_Mobile    string   `ldap:"sponsorMobile" json:"sponsorMobile,omitempty"`
+        R_StartTime string   `ldap:"sponsorStartTimestamp" json:"sponsorStartTimestamp,omitempty"`
+        R_EndTime   string   `ldap:"sponsorEndTimestamp" json:"sponsorEndTimestamp,omitempty"`
+        R_URI       []string `ldap:"sponsorURI" json:"sponsorURI,omitempty"`
 
 	// Alternative RFC-based attribute types for authorities. See Section
 	// 3.2.1.1.1 of the RADIT I-D for strategy details and caveats.
@@ -51,22 +51,41 @@ type Sponsor struct {
 	// Also note that the 'sponsorContext' AUXILIARY class will
 	// still be used for entries of this kind, regardless of attribute
 	// content strategy.
-	R_L_alt      string   `ldap:"l"`                        // RFC 4519 § 2.16
-	R_O_alt      string   `ldap:"o"`                        // RFC 4519 § 2.19
-	R_C_alt      string   `ldap:"c"`                        // RFC 4519 § 2.2
-	R_CO_alt     string   `ldap:"co"`                       // RFC 4524 § 2.4
-	R_ST_alt     string   `ldap:"st"`                       // RFC 4519 § 2.33
-	R_CN_alt     string   `ldap:"cn"`                       // RFC 4519 § 2.3
-	R_Tel_alt    string   `ldap:"telephoneNumber"`          // RFC 4519 § 2.35
-	R_Fax_alt    string   `ldap:"facsimileTelephoneNumber"` // RFC 4519 § 2.10
-	R_Title_alt  string   `ldap:"title"`                    // RFC 4519 § 2.38
-	R_Email_alt  string   `ldap:"mail"`                     // RFC 4524 § 2.16
-	R_POBox_alt  string   `ldap:"postOfficeBox"`            // RFC 4519 § 2.25
-	R_PCode_alt  string   `ldap:"postalCode"`               // RFC 4519 § 2.24
-	R_PAddr_alt  string   `ldap:"postalAddress"`            // RFC 4519 § 2.23
-	R_Street_alt string   `ldap:"street"`                   // RFC 4519 § 2.34
-	R_Mobile_alt string   `ldap:"mobile"`                   // RFC 4524 § 2.18
-	R_URI_alt    []string `ldap:"labeledURI"`               // RFC 2079 § 2
+        //
+        // RFC citations:
+        //
+        //   l                        - RFC 4519 § 2.16
+        //   o                        - RFC 4519 § 2.19
+        //   c                        - RFC 4519 § 2.2
+        //   co                       - RFC 4524 § 2.4
+        //   st                       - RFC 4519 § 2.33
+        //   cn                       - RFC 4519 § 2.3
+        //   telephoneNumber          - RFC 4519 § 2.35
+        //   facsimileTelephoneNumber - RFC 4519 § 2.10
+        //   title                    - RFC 4519 § 2.38
+        //   mail                     - RFC 4524 § 2.16
+        //   postOfficeBox            - RFC 4519 § 2.25
+        //   postalCode               - RFC 4519 § 2.25
+        //   postalAddress            - RFC 4519 § 2.23
+        //   street                   - RFC 4519 § 2.34
+        //   mobile                   - RFC 4524 § 2.18
+        //   labeledURI               - RFC 2079 § 2
+        R_L_alt      string   `ldap:"l" json:"l,omitempty"`
+        R_O_alt      string   `ldap:"o" json:"o,omitempty"`
+        R_C_alt      string   `ldap:"c" json:"c,omitempty"`
+        R_CO_alt     string   `ldap:"co" json:"co,omitempty"`
+        R_ST_alt     string   `ldap:"st" json:"st,omitempty"`
+        R_CN_alt     string   `ldap:"cn" json:"cn,omitempty"`
+        R_Tel_alt    string   `ldap:"telephoneNumber" json:"telephoneNumber,omitempty"`
+        R_Fax_alt    string   `ldap:"facsimileTelephoneNumber" json:"facsimileTelephoneNumber,omitempty"`
+        R_Title_alt  string   `ldap:"title" json:"title,omitempty"`
+        R_Email_alt  string   `ldap:"mail" json:"mail,omitempty"`
+        R_POBox_alt  string   `ldap:"postOfficeBox" json:"postOfficeBox,omitempty"`
+        R_PCode_alt  string   `ldap:"postalCode" json:"postalCode,omitempty"`
+        R_PAddr_alt  string   `ldap:"postalAddress" json:"postalAddress,omitempty"`
+        R_Street_alt string   `ldap:"street" json:"street,omitempty"`
+        R_Mobile_alt string   `ldap:"mobile" json:"mobile,omitempty"`
+        R_URI_alt    []string `ldap:"labeledURI" json:"labeledURI,omitempty"`
 
 	r_alt_types bool
 }
@@ -692,3 +711,4 @@ instance of this type.
 func (r *Sponsor) Auxiliary() string {
 	return `sponsorContext`
 }
+

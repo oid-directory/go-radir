@@ -22,30 +22,31 @@ Instances of this type need not be initialized by the user directly.
 [ITU-T Rec. X.660]: https://www.itu.int/rec/T-REC-X.660
 */
 type X660 struct {
-	R_UVal    string   `ldap:"unicodeValue"`           // RASCHEMA § 2.3.5
-	R_AddlUV  []string `ldap:"additionalUnicodeValue"` // RASCHEMA § 2.3.6
-	R_SecId   []string `ldap:"secondaryIdentifier"`    // RASCHEMA § 2.3.8
-	R_StdNF   []string `ldap:"standardizedNameForm"`   // RASCHEMA § 2.3.18
-	R_LongArc []string `ldap:"longArc"`                // RASCHEMA § 2.3.20
+	// Standard attributes. See RASCHEMA 2.3.5, 2.3.6, 2.3.8, 2.3.18 and 2.3.20.
+	R_UVal    string   `ldap:"unicodeValue" json:"unicodeValue,omitempty"`
+	R_AddlUV  []string `ldap:"additionalUnicodeValue" json:"additionalUnicodeValue,omitempty"`
+	R_SecId   []string `ldap:"secondaryIdentifier" json:"secondaryIdentifier,omitempty"`
+	R_StdNF   []string `ldap:"standardizedNameForm" json:"standardizedNameForm,omitempty"`
+	R_LongArc []string `ldap:"longArc" json:"longArc,omitempty"`
 
-	// NON-COLLECTIVE DEDICATED entry DNs
-	R_FAuthyDN []string `ldap:"firstAuthority"`   // RASCHEMA § 2.3.54
-	R_CAuthyDN []string `ldap:"currentAuthority"` // RASCHEMA § 2.3.35
-	R_SAuthyDN []string `ldap:"sponsor"`          // RASCHEMA § 2.3.74
+	// NON-COLLECTIVE DEDICATED entry DN(s). See RASCHEMA 2.3.54, 2.3.35 and 2.3.74.
+	R_FAuthyDN []string `ldap:"firstAuthority" json:"firstAuthority,omitempty"`
+	R_CAuthyDN []string `ldap:"currentAuthority" json:"currentAuthority,omitempty"`
+	R_SAuthyDN []string `ldap:"sponsor" json:"sponsor,omitempty"`
 
-	// COLLECTIVE DEDICATED registrant entry DN(s)
-	RC_FAuthyDN []string `ldap:"c-firstAuthority;collective"`   // RASCHEMA § 2.3.55
-	RC_CAuthyDN []string `ldap:"c-currentAuthority;collective"` // RASCHEMA § 2.3.36
-	RC_SAuthyDN []string `ldap:"c-sponsor;collective"`          // RASCHEMA § 2.3.75
+	// COLLECTIVE DEDICATED registrant entry DN(s). See RASCHEMA § 2.3.55, 2.3.36 and 2.3.75.
+	RC_FAuthyDN []string `ldap:"c-firstAuthority;collective" json:"c-firstAuthority,omitempty"`
+	RC_CAuthyDN []string `ldap:"c-currentAuthority;collective" json:"c-currentAuthority,omitempty"`
+	RC_SAuthyDN []string `ldap:"c-sponsor;collective" json:"c-sponsor,omitempty"`
 
-	// COMBINED registrant entry stubs.
-	R_CFAuthy *FirstAuthority   // RASCHEMA § 2.3.37-53
-	R_CCAuthy *CurrentAuthority // RASCHEMA § 2.3.56-73
-	R_CSAuthy *Sponsor          // RASCHEMA § 2.3.76-93
+	// COMBINED registrant entry stubs. See RASCHEMA 2.3.37-53, 2.3.56-73 and 2.3.76-93.
+	R_CFAuthy *FirstAuthority   `json:"firstAuthority"`
+	R_CCAuthy *CurrentAuthority `json:"currentAuthority"`
+	R_CSAuthy *Sponsor          `json:"sponsor"`
 
-	r_DITProfile *DITProfile
+	r_DITProfile *DITProfile `json:"-"`
 	r_root       *registeredRoot // linked from *Registration during init
-	r_se         bool
+	r_se	     bool
 }
 
 /*
@@ -650,3 +651,4 @@ func (r *X660) writeEligible(tag string, value any) (err error) {
 
 	return
 }
+

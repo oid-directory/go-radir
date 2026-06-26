@@ -17,24 +17,24 @@ type FirstAuthority struct {
 	// Primary draft-based attribute types for authorities. These
 	// represent the default types/fields that will be used for an
 	// authority of this form.
-	R_L         string   `ldap:"firstAuthorityLocality"`
-	R_O         string   `ldap:"firstAuthorityOrg"`
-	R_C         string   `ldap:"firstAuthorityCountryCode"`
-	R_CO        string   `ldap:"firstAuthorityCountryName"`
-	R_ST        string   `ldap:"firstAuthorityState"`
-	R_CN        string   `ldap:"firstAuthorityCommonName"`
-	R_Tel       string   `ldap:"firstAuthorityTelephone"`
-	R_Fax       string   `ldap:"firstAuthorityFax"`
-	R_Title     string   `ldap:"firstAuthorityTitle"`
-	R_Email     string   `ldap:"firstAuthorityEmail"`
-	R_POBox     string   `ldap:"firstAuthorityPOBox"`
-	R_PCode     string   `ldap:"firstAuthorityPostalCode"`
-	R_PAddr     string   `ldap:"firstAuthorityPostalAddress"`
-	R_Street    string   `ldap:"firstAuthorityStreet"`
-	R_Mobile    string   `ldap:"firstAuthorityMobile"`
-	R_StartTime string   `ldap:"firstAuthorityStartTimestamp"`
-	R_EndTime   string   `ldap:"firstAuthorityEndTimestamp"`
-	R_URI       []string `ldap:"firstAuthorityURI"`
+        R_L         string   `ldap:"firstAuthorityLocality" json:"firstAuthorityLocality,omitempty"`
+        R_O         string   `ldap:"firstAuthorityOrg" json:"firstAuthorityOrg,omitempty"`
+        R_C         string   `ldap:"firstAuthorityCountryCode" json:"firstAuthorityCountryCode,omitempty"`
+        R_CO        string   `ldap:"firstAuthorityCountryName" json:"firstAuthorityCountryName,omitempty"`
+        R_ST        string   `ldap:"firstAuthorityState" json:"firstAuthorityState,omitempty"`
+        R_CN        string   `ldap:"firstAuthorityCommonName" json:"firstAuthorityCommonName,omitempty"`
+        R_Tel       string   `ldap:"firstAuthorityTelephone" json:"firstAuthorityTelephone,omitempty"`
+        R_Fax       string   `ldap:"firstAuthorityFax" json:"firstAuthorityFax,omitempty"`
+        R_Title     string   `ldap:"firstAuthorityTitle" json:"firstAuthorityTitle,omitempty"`
+        R_Email     string   `ldap:"firstAuthorityEmail" json:"firstAuthorityEmail,omitempty"`
+        R_POBox     string   `ldap:"firstAuthorityPOBox" json:"firstAuthorityPOBox,omitempty"`
+        R_PCode     string   `ldap:"firstAuthorityPostalCode" json:"firstAuthorityPostalCode,omitempty"`
+        R_PAddr     string   `ldap:"firstAuthorityPostalAddress" json:"firstAuthorityPostalAddress,omitempty"`
+        R_Street    string   `ldap:"firstAuthorityStreet" json:"firstAuthorityStreet,omitempty"`
+        R_Mobile    string   `ldap:"firstAuthorityMobile" json:"firstAuthorityMobile,omitempty"`
+        R_StartTime string   `ldap:"firstAuthorityStartTimestamp" json:"firstAuthorityStartTimestamp,omitempty"`
+	R_EndTime   string   `ldap:"firstAuthorityEndTimestamp" json:"firstAuthorityEndTimestamp,omitempty"`
+        R_URI       []string `ldap:"firstAuthorityURI" json:"firstAuthorityURI,omitempty"`
 
 	// Alternative RFC-based attribute types for authorities. See Section
 	// 3.2.1.1.1 of the RADIT I-D for strategy details and caveats.
@@ -51,22 +51,41 @@ type FirstAuthority struct {
 	// Also note that the 'firstAuthorityContext' AUXILIARY class will
 	// still be used for entries of this kind, regardless of attribute
 	// content strategy.
-	R_L_alt      string   `ldap:"l"`                        // RFC 4519 § 2.16
-	R_O_alt      string   `ldap:"o"`                        // RFC 4519 § 2.19
-	R_C_alt      string   `ldap:"c"`                        // RFC 4519 § 2.2
-	R_CO_alt     string   `ldap:"co"`                       // RFC 4524 § 2.4
-	R_ST_alt     string   `ldap:"st"`                       // RFC 4519 § 2.33
-	R_CN_alt     string   `ldap:"cn"`                       // RFC 4519 § 2.3
-	R_Tel_alt    string   `ldap:"telephoneNumber"`          // RFC 4519 § 2.35
-	R_Fax_alt    string   `ldap:"facsimileTelephoneNumber"` // RFC 4519 § 2.10
-	R_Title_alt  string   `ldap:"title"`                    // RFC 4519 § 2.38
-	R_Email_alt  string   `ldap:"mail"`                     // RFC 4524 § 2.16
-	R_POBox_alt  string   `ldap:"postOfficeBox"`            // RFC 4519 § 2.25
-	R_PCode_alt  string   `ldap:"postalCode"`               // RFC 4519 § 2.24
-	R_PAddr_alt  string   `ldap:"postalAddress"`            // RFC 4519 § 2.23
-	R_Street_alt string   `ldap:"street"`                   // RFC 4519 § 2.34
-	R_Mobile_alt string   `ldap:"mobile"`                   // RFC 4524 § 2.18
-	R_URI_alt    []string `ldap:"labeledURI"`               // RFC 2079 § 2
+        //
+        // RFC citations:
+        //
+        //   l                        - RFC 4519 § 2.16
+        //   o                        - RFC 4519 § 2.19
+        //   c                        - RFC 4519 § 2.2
+        //   co                       - RFC 4524 § 2.4
+        //   st                       - RFC 4519 § 2.33
+        //   cn                       - RFC 4519 § 2.3
+        //   telephoneNumber          - RFC 4519 § 2.35
+        //   facsimileTelephoneNumber - RFC 4519 § 2.10
+        //   title                    - RFC 4519 § 2.38
+        //   mail                     - RFC 4524 § 2.16
+        //   postOfficeBox            - RFC 4519 § 2.25
+        //   postalCode               - RFC 4519 § 2.25
+        //   postalAddress            - RFC 4519 § 2.23
+        //   street                   - RFC 4519 § 2.34
+        //   mobile                   - RFC 4524 § 2.18
+        //   labeledURI               - RFC 2079 § 2
+        R_L_alt      string   `ldap:"l" json:"l,omitempty"`
+        R_O_alt      string   `ldap:"o" json:"o,omitempty"`
+        R_C_alt      string   `ldap:"c" json:"c,omitempty"`
+        R_CO_alt     string   `ldap:"co" json:"co,omitempty"`
+        R_ST_alt     string   `ldap:"st" json:"st,omitempty"`
+        R_CN_alt     string   `ldap:"cn" json:"cn,omitempty"`
+        R_Tel_alt    string   `ldap:"telephoneNumber" json:"telephoneNumber,omitempty"`
+        R_Fax_alt    string   `ldap:"facsimileTelephoneNumber" json:"facsimileTelephoneNumber,omitempty"`
+        R_Title_alt  string   `ldap:"title" json:"title,omitempty"`
+        R_Email_alt  string   `ldap:"mail" json:"mail,omitempty"`
+        R_POBox_alt  string   `ldap:"postOfficeBox" json:"postOfficeBox,omitempty"`
+        R_PCode_alt  string   `ldap:"postalCode" json:"postalCode,omitempty"`
+        R_PAddr_alt  string   `ldap:"postalAddress" json:"postalAddress,omitempty"`
+        R_Street_alt string   `ldap:"street" json:"street,omitempty"`
+        R_Mobile_alt string   `ldap:"mobile" json:"mobile,omitempty"`
+        R_URI_alt    []string `ldap:"labeledURI" json:"labeledURI,omitempty"`
 
 	r_alt_types bool
 }
@@ -692,3 +711,4 @@ instance of this type.
 func (r *FirstAuthority) Auxiliary() string {
 	return `firstAuthorityContext`
 }
+

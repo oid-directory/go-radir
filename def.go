@@ -418,3 +418,4 @@ func resolveAltType(tag string, typ int, alt bool) string {
 	// alternatives for it.
 	return tag
 }
+

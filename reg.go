@@ -1,7 +1,7 @@
 package radir
 
 /*
-reg.go contains Registration types and methods.
+reg.go contains Registration methods.
 */
 
 import (
@@ -13,27 +13,31 @@ Registration contains information either to be set upon, or derived from,
 an LDAP entry that describes a registration.
 */
 type Registration struct {
-	R_DN      string   `ldap:"dn"`
-	R_GSR     string   `ldap:"governingStructureRule"`
-	R_TTL     string   `ldap:"rATTL"`
-	RC_TTL    string   `ldap:"c-rATTL;collective"`
-	R_SOC     string   `ldap:"structuralObjectClass"`
-	R_CAS     []string `ldap:"collectiveAttributeSubentries"`
-	R_OC      []string `ldap:"objectClass"`
-	R_Desc    []string `ldap:"description"` // effective "title" of reg
-	R_Also    []string `ldap:"seeAlso"`
-	R_LongArc []string `ldap:"longArc"` // only permitted for subArcs of Joint-ISO-ITU-T (2).
+	R_DN      string   `ldap:"dn" json:"dn"`
+	R_GSR     string   `ldap:"governingStructureRule" json:"governingStructureRule,omitempty"`
+	R_TTL     string   `ldap:"rATTL" json:"rATTL,omitempty"`
+	RC_TTL    string   `ldap:"c-rATTL;collective" json:"c-rATTL,omitempty"`
+	R_SOC     string   `ldap:"structuralObjectClass" json:"structuralObjectClass"`
+	R_CAS     []string `ldap:"collectiveAttributeSubentries" json:"collectiveAttributeSubentries,omitempty"`
+	R_OC      []string `ldap:"objectClass" json:"objectClass"`
 
-	R_X660    *X660       // ITU-T Rec. X.660 types
-	R_X667    *X667       // ITU-T Rec. X.667 types
-	R_X680    *X680       // ITU-T Rec. X.680 types
-	R_X690    *X690       // ITU-T Rec. X.690 types
-	R_Extra   *Supplement // Non-standard: Supplemental types
-	R_Spatial *Spatial    // Non-standard: Spatial types
+	// description is effective "title" of registration
+	R_Desc    []string `ldap:"description" json:"description,omitempty"`
+	R_Also    []string `ldap:"seeAlso" json:"seeAlso,omitempty"`
 
-	R_DITProfile *DITProfile `ldap:"-"`
-	r_Parent     *Registration
-	r_Children   *Registrations
+	// longArc is only permitted for subArcs of Joint-ISO-ITU-T (2).
+	R_LongArc []string `ldap:"longArc" json:"longArc,omitempty"`
+
+	R_X660    *X660       `json:"x660"`   // ITU-T Rec. X.660 types
+	R_X667    *X667       `json:"x667"`   // ITU-T Rec. X.667 types
+	R_X680    *X680       `json:"x680"`   // ITU-T Rec. X.680 types
+	R_X690    *X690       `json:"x690"`   // ITU-T Rec. X.690 types
+	R_Extra   *Supplement `json:"extra"`  // Non-standard: Supplemental types
+	R_Spatial *Spatial    `json:"spatial"`// Non-standard: Spatial types
+
+	R_DITProfile *DITProfile    `json:"-"`
+	r_Parent     *Registration  `json:"parent"`
+	r_Children   *Registrations `json:"children"`
 	r_root       *registeredRoot
 	r_se         *Subentries
 }
@@ -1587,3 +1591,4 @@ func (r *Registration) sibOrSub(nf, id string, sib bool) (ident, nanf, dotp, dnp
 
 	return
 }
+

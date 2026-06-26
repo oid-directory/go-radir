@@ -79,32 +79,33 @@ the "[rADITProfile]" type is NOT present as a struct field here.
 [Section 2.3.94 of the RASCHEMA I-D]: https://datatracker.ietf.org/doc/html/draft-coretta-oiddir-schema#section-2.3.94
 */
 type DITProfile struct {
-	R_DN       string   `ldap:"dn"`
-	R_GSR      string   `ldap:"governingStructureRule"`
-	R_TTL      string   `ldap:"rATTL"`              // RASCHEMA 2.3.100
-	R_Model    string   `ldap:"rADirectoryModel"`   // RASCHEMA 2.3.97
-	R_RegBase  []string `ldap:"rARegistrationBase"` // RASCHEMA 2.3.95
-	R_AthyBase []string `ldap:"rARegistrantBase"`   // RASCHEMA 2.3.96
-	R_Mail     []string `ldap:"rAServiceMail"`      // RASCHEMA 2.3.98
-	R_URI      []string `ldap:"rAServiceURIs"`      // RASCHEMA 2.3.99
-	R_OC       []string `ldap:"objectClass"`
+	R_DN       string   `ldap:"dn" json:"dn"`
+	R_GSR      string   `ldap:"governingStructureRule" json:"governingStructureRule,omitempty"`
+	R_TTL      string   `ldap:"rATTL" json:"raTTL,omitempty"`                 // RASCHEMA 2.3.100
+	R_Model    string   `ldap:"rADirectoryModel" json:"rADirectoryModel"`     // RASCHEMA 2.3.97
+	R_RegBase  []string `ldap:"rARegistrationBase" json:"rARegistrationBase"` // RASCHEMA 2.3.95
+	R_AthyBase []string `ldap:"rARegistrantBase" json:"rARegistrantBase"`     // RASCHEMA 2.3.96
+	R_Mail     []string `ldap:"rAServiceMail" json:"rAServiceMail,omitempty"` // RASCHEMA 2.3.98
+	R_URI      []string `ldap:"rAServiceURI" json:"rAServiceURI,omitempty"`   // RASCHEMA 2.3.99
+	R_OC       []string `ldap:"objectClass" json:"objectClass"`
 
 	// The collective form of the TTL (c-rATTL) is not
 	// applicable to an instance of this type that is
 	// an abstraction of the Root DSE.
-	RC_TTL string `ldap:"c-rATTL;collective"` // RASCHEMA 2.3.101
+	RC_TTL string `ldap:"c-rATTL;collective" json:"c-rATTL,omitempty"` // RASCHEMA 2.3.101
 
 	// No concept of arbitrary "settings" for an RA DUA is
 	// officially defined in the RADUA I-D series, but is
 	// nonetheless sensible to include here for reasons of
 	// client optimization, if needed.
-	R_Settings *ProfileSettings
+	R_Settings *ProfileSettings `json:"settings"`
 
 	// Make a note of our dedicated type policy (draft or RFC).
 	r_alt_types bool
 
 	r_bsel [2]int
 }
+
 
 /*
 Valid returns a boolean value indicative of whether the receiver
@@ -1136,3 +1137,4 @@ func init() {
 	myCombinedProfile.SetRegistrationBase("ou=Registrations,o=rA")
 	myCombinedProfile.SetRegistrantBase("ou=Registrations,o=rA")
 }
+

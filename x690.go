@@ -16,8 +16,8 @@ Instances of this type need not be initialized by the user directly.
 [ITU-T Rec. X.690]: https://www.itu.int/rec/T-REC-X.690
 */
 type X690 struct {
-	R_DotEnc     string `ldap:"dotEncoding"` // RASCHEMA § 2.3.103
-	r_DITProfile *DITProfile
+	R_DotEnc     string `ldap:"dotEncoding" json:"dotEncoding,omitempty"` // RASCHEMA § 2.3.103
+	r_DITProfile *DITProfile `json:"-"`
 	r_root       *registeredRoot
 }
 
@@ -123,3 +123,4 @@ SetDotEncoding assigns the string dotEncoding value to the receiver instance.
 func (r *X690) SetDotEncoding(args ...any) error {
 	return writeFieldByTag(`dotEncoding`, r.SetDotEncoding, r, args...)
 }
+

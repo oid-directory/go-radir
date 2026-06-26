@@ -8,19 +8,19 @@ as the mechanics described within [Section 3.2.4.19 of the RADIT I-D].
 [Section 3.2.4.19 of the RADIT I-D]: https://datatracker.ietf.org/doc/html/draft-coretta-oiddir-radit#section-3.2.4.19
 */
 type Spatial struct {
-	R_SupArc   string   `ldap:"supArc"`   // RASCHEMA § 2.3.21
-	R_TopArc   string   `ldap:"topArc"`   // RASCHEMA § 2.3.23
-	R_MinArc   string   `ldap:"minArc"`   // RASCHEMA § 2.3.27
-	R_MaxArc   string   `ldap:"maxArc"`   // RASCHEMA § 2.3.30
-	R_LeftArc  string   `ldap:"leftArc"`  // RASCHEMA § 2.3.26
-	R_RightArc string   `ldap:"rightArc"` // RASCHEMA § 2.3.29
-	R_SubArc   []string `ldap:"subArc"`   // RASCHEMA § 2.3.25
+	R_SupArc   string   `ldap:"supArc" json:"supArc,omitempty"`     // RASCHEMA § 2.3.21
+	R_TopArc   string   `ldap:"topArc" json:"topArc,omitempty"`     // RASCHEMA § 2.3.23
+	R_MinArc   string   `ldap:"minArc" json:"minArc,omitempty"`     // RASCHEMA § 2.3.27
+	R_MaxArc   string   `ldap:"maxArc" json:"maxArc,omitempty"`     // RASCHEMA § 2.3.30
+	R_LeftArc  string   `ldap:"leftArc" json:"leftArc,omitempty"`   // RASCHEMA § 2.3.26
+	R_RightArc string   `ldap:"rightArc" json:"rightArc,omitempty"` // RASCHEMA § 2.3.29
+	R_SubArc   []string `ldap:"subArc" json:"subArc,omitempty"`     // RASCHEMA § 2.3.25
 
 	// COLLECTIVE spatial types
-	RC_SupArc string `ldap:"c-supArc;collective"` // RASCHEMA § 2.3.22
-	RC_TopArc string `ldap:"c-topArc;collective"` // RASCHEMA § 2.3.24
-	RC_MinArc string `ldap:"c-minArc;collective"` // RASCHEMA § 2.3.28
-	RC_MaxArc string `ldap:"c-maxArc;collective"` // RASCHEMA § 2.3.31
+	RC_SupArc string `ldap:"c-supArc;collective" json:"c-supArc,omitempty"` // RASCHEMA § 2.3.22
+	RC_TopArc string `ldap:"c-topArc;collective" json:"c-topArc,omitempty"` // RASCHEMA § 2.3.24
+	RC_MinArc string `ldap:"c-minArc;collective" json:"c-minArc,omitempty"` // RASCHEMA § 2.3.28
+	RC_MaxArc string `ldap:"c-maxArc;collective" json:"c-maxArc,omitempty"` // RASCHEMA § 2.3.31
 
 	r_se bool
 }
@@ -379,3 +379,4 @@ an error.
 func (r *Spatial) SubArcGetFunc(getfunc GetOrSetFunc) (any, error) {
 	return getFieldValueByNameTagAndGoSF(r, getfunc, `subArc`)
 }
+
