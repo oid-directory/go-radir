@@ -115,7 +115,6 @@ func (r *Registration) Walk(id any) (reg *Registration) {
 			}
 			reg = r.walkASN1(nanfs)
 		}
-		return
 	}
 
 	return
@@ -175,10 +174,11 @@ func (r *Registration) Allocate(oid any, ident ...string) (reg *Registration) {
 	switch tv := oid.(type) {
 	case string:
 		// First just check to see if it is already allocated
-		if _reg := r.Walk(tv); !_reg.IsZero() {
-			reg = _reg
-			return
-		}
+		// TODO: revisit this :/
+		//if _reg := r.Walk(tv); !_reg.IsZero() {
+		//	reg = _reg
+		//	return
+		//}
 
 		if _, a, err := cleanASN1(tv); err != nil {
 			o = split(trimL(tv, `.`), `.`)
@@ -259,9 +259,6 @@ func (r *Registration) allocateASN1(o [][]string) (reg *Registration) {
 			}
 		}
 		reg = reg.allocateASN1(o)
-		//} else {
-		//        reg = reg.Allocate(o)
-		//}
 	}
 
 	return
@@ -495,6 +492,18 @@ func (r *Registrations) Less(i, j int) (less bool) {
 	return
 }
 
+func (r *Registrations) swapDuplicate(reg *Registration) (idx int) {
+	idx = -1
+	for i := 0 ; i < r.Len() && idx == -1; i++ {
+		if c := (*r)[i].DN() == reg.DN(); c {
+			idx = i
+			(*r)[i] = reg
+		}
+	}
+
+	return
+}
+
 /*
 Push appends the non-zero input *[Registration] instance to the receiver
 slice instance.
@@ -502,7 +511,9 @@ slice instance.
 func (r *Registrations) Push(reg *Registration) {
 	if !r.IsZero() {
 		if reg.valid() {
-			*r = append(*r, reg)
+			if r.swapDuplicate(reg) == -1 {
+				*r = append(*r, reg)
+			}
 		}
 	}
 }
@@ -1186,6 +1197,24 @@ func (r *Registration) refreshObjectClasses() {
 			}
 		}
 	}
+
+        if !strInSlice(`rootArc`, r.R_OC) {
+                root, _ := r.Root()
+                switch root {
+                case 0:
+                        removeStrInSlice(`iSORegistration`, r.R_OC)
+                        removeStrInSlice(`jointISOITUTRegistration`, r.R_OC)
+                        r.R_OC = append(r.R_OC, `iTUTRegistration`)
+                case 1:
+                        removeStrInSlice(`iTUTRegistration`, r.R_OC)
+                        removeStrInSlice(`jointISOITUTRegistration`, r.R_OC)
+                        r.R_OC = append(r.R_OC, `iSORegistration`)
+                case 2:
+                        removeStrInSlice(`iTUTRegistration`, r.R_OC)
+                        removeStrInSlice(`iSORegistration`, r.R_OC)
+                        r.R_OC = append(r.R_OC, `jointISOITUTRegistration`)
+                }
+        }
 
 	// go-ldap/v3.Entry.Unmarshal is sloppy about adding
 	// duplicate objectClasses, so let's clean up any

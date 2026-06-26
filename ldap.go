@@ -96,6 +96,8 @@ func toLDIF(in any) (out string) {
 
 		if values := readFieldByTag(tag, in); len(values) > 0 {
 			for i := 0; i < len(values); i++ {
+				values[i] = replaceAll(values[i], `\n`, ` `)
+				values[i] = trimS(values[i])
 				bld.WriteString(tag + `: ` + values[i])
 				bld.WriteRune(10)
 			}
