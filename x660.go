@@ -40,9 +40,9 @@ type X660 struct {
 	RC_SAuthyDN []string `ldap:"c-sponsor;collective" json:"c-sponsor,omitempty"`
 
 	// COMBINED registrant entry stubs. See RASCHEMA 2.3.37-53, 2.3.56-73 and 2.3.76-93.
-	R_CFAuthy *FirstAuthority   `json:"combinedfirstAuthority"`
-	R_CCAuthy *CurrentAuthority `json:"combinedcurrentAuthority"`
-	R_CSAuthy *Sponsor          `json:"combinedSponsor"`
+	R_CFAuthy *FirstAuthority   `json:"combinedFirstAuthority,omitempty"`
+	R_CCAuthy *CurrentAuthority `json:"combinedCurrentAuthority,omitempty"`
+	R_CSAuthy *Sponsor          `json:"combinedSponsor,omitempty"`
 
 	r_DITProfile *DITProfile `json:"-"`
 	r_root       *registeredRoot // linked from *Registration during init
