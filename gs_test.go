@@ -31,18 +31,44 @@ DN values unnecessarily.
 func ExampleSpatial_dNChopper() {
 	// Define our "GetterOrSetter"
 	getterOrSetter := func(x ...any) (any, error) {
-		switch tv := x[0].(type) {
-		case string:
-			idxA := strings.IndexRune(tv, '=')
-			idxC := strings.IndexRune(tv, ',')
-			if idxA != -1 && idxC != -1 {
-				// If you wanted to take this opportunity
-				// to strconv the string to an actual number,
-				// such as int or *big.Int, etc., you could
-				// do it here :)
-				return tv[idxA+1:idxC], nil
-			}
-		}
+        	switch tv := x[0].(type) {
+        	case []string:
+			// []string is purely for subArc, which
+			// can have ANY number of DNs. Costly,
+			// but necessary in some cases, i.e.:
+			// the IANA PEN registry @ 1.3.6.1.4.1.
+
+        	        var L int = len(tv)
+        	        if L == 0 {
+        	                break
+        	        }
+
+        	        var nfs []string
+        	        for i := 0; i < L; i++ {
+        	                idxA := strings.IndexRune(tv[i], '=')
+        	                idxC := strings.IndexRune(tv[i], ',')
+        	                if idxA != -1 && idxC != -1 {
+        	                        nfs = append(nfs, tv[i][idxA+1:idxC])
+        	                }
+        	        }
+        	        return nfs, nil
+        	case string:
+			// string is for all spatial arc DNs
+			// *EXCEPT* subArc (see []string case
+			// above).
+
+        	        if len(tv) == 0 {
+        	                break
+        	        }
+
+        	        idxA := strings.IndexRune(tv, '=')
+        	        idxC := strings.IndexRune(tv, ',')
+        	        var nf string
+        	        if idxA != -1 && idxC != -1 {
+        	                nf = tv[idxA+1:idxC]
+        	        }
+        	        return nf, nil
+        	}
 		return nil, fmt.Errorf("Some unexpected error occurred")
 	}
 
@@ -53,7 +79,6 @@ func ExampleSpatial_dNChopper() {
 		R_DN: "n=56521,n=1,n=4,n=1,n=6,n=3,n=1,ou=Registrations,o=rA",
 		R_Spatial: &Spatial{
 			R_LeftArc: "n=56520,n=1,n=4,n=1,n=6,n=3,n=1,ou=Registrations,o=rA",
-			R_RightArc: "n=56522,n=1,n=4,n=1,n=6,n=3,n=1,ou=Registrations,o=rA",
 		},
 	}
 
