@@ -1,12 +1,70 @@
 package radir
 
 import (
+	"fmt"
 	"math/big"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/oid-directory/go-radir/oid"
 )
+
+/*
+This example demonstrates using the *[Spatial] type and a
+[GetOrSetFunc] to "chop" the RDN off a DN value and strip
+away the attribute type, revealing only the lone RDN value,
+which in this example would be a numberForm ("n").
+
+For instance:
+
+   n=56521,n=1,n=4,n=1,n=6,n=3,n=1,ou=Registrations,o=rA
+
+... would become simply ...
+
+   56521
+
+This is useful for simplifying values associated with
+"minArc", "leftArc", et al., rather than handling full
+DN values unnecessarily.
+*/
+func ExampleSpatial_dNChopper() {
+	// Define our "GetterOrSetter"
+	getterOrSetter := func(x ...any) (any, error) {
+		switch tv := x[0].(type) {
+		case string:
+			idxA := strings.IndexRune(tv, '=')
+			idxC := strings.IndexRune(tv, ',')
+			if idxA != -1 && idxC != -1 {
+				// If you wanted to take this opportunity
+				// to strconv the string to an actual number,
+				// such as int or *big.Int, etc., you could
+				// do it here :)
+				return tv[idxA+1:idxC], nil
+			}
+		}
+		return nil, fmt.Errorf("Some unexpected error occurred")
+	}
+
+	// Here is our test registration. This is very
+	// watered down just for the sake of a simple
+	// example.
+	reg := &Registration{
+		R_DN: "n=56521,n=1,n=4,n=1,n=6,n=3,n=1,ou=Registrations,o=rA",
+		R_Spatial: &Spatial{
+			R_LeftArc: "n=56520,n=1,n=4,n=1,n=6,n=3,n=1,ou=Registrations,o=rA",
+			R_RightArc: "n=56522,n=1,n=4,n=1,n=6,n=3,n=1,ou=Registrations,o=rA",
+		},
+	}
+
+	// Finally, call the desired method (LeftArcGetFunc) and
+	// pass it our getterOrSetter definition.
+	nf, err := reg.Spatial().LeftArcGetFunc(getterOrSetter)
+	if err == nil {
+		fmt.Printf("%s", nf)
+	}
+	// Output: 56520
+}
 
 func TestRegistrantDNGenerator(t *testing.T) {
 	RegistrantDNGenerator()

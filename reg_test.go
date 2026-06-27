@@ -266,6 +266,7 @@ func ExampleASN1NotationToMulti_sixValuesFromOne() {
 	// objectClass: registration
 	// objectClass: arc
 	// objectClass: x680Context
+	// objectClass: iSORegistration
 	// n: 101
 	// aSN1Notation: {iso(1) identified-organization(3) dod(6) internet(1) private(4) enterprise(1) 56521 oid-directory(101)}
 	// dotNotation: 1.3.6.1.4.1.56521.101
