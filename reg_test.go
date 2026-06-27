@@ -724,14 +724,20 @@ func bogusRegistration_codecov() error {
 		return nil
 	}
 
-	var empty *Registration
+	var person Registrant
+	person.TTL()
+	person.CTTL()
+
+	var empty Registration
 	_, _, _, _, _ = empty.sibOrSub(`-1`, ``, false)
 	empty.Unmarshal()
 	empty.Dedicated()
 	empty.Combined()
+	empty.TTL()
+	empty.CTTL()
 	empty.StructuralObjectClass()
 	empty.CollectiveAttributeSubentries()
-	regs := Registrations{empty}
+	regs := Registrations{&empty}
 	regs.Unmarshal()
 	regs.Marshal(&DITProfile{}, efunk)
 	regs.Marshal(myDedicatedProfile, efunk)

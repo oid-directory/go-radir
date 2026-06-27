@@ -332,6 +332,15 @@ func (r *Registrant) TTL() string {
 }
 
 /*
+CTTL returns the COLLECTIVE time-to-live for the receiver instance. Note
+that an explicit TTL (via the [Registration.TTL] method) supersedes a
+COLLECTIVE TTL.
+*/
+func (r *Registrant) CTTL() string {
+        return r.RC_TTL
+}
+
+/*
 SetTTL assigns the provided string value to the receiver instance.
 */
 func (r *Registrant) SetTTL(args ...any) error {
