@@ -20,12 +20,12 @@ Instances of this type need not be initialized by the user directly.
 [ITU-T Rec. X.680]: https://www.itu.int/rec/T-REC-X.680
 */
 type X680 struct {
-	R_N          string   `ldap:"n" json:"n"`                 		  // RASCHEMA § 2.3.1
-	R_ASN1Not    string   `ldap:"aSN1Notation" json:"aSN1Notation"`      	  // RASCHEMA § 2.3.4
-	R_DotNot     string   `ldap:"dotNotation" json:"dotNotation"`       	  // RASCHEMA § 2.3.2
-	R_Id         string   `ldap:"identifier" json:"identifier"`        	  // RASCHEMA § 2.3.7
-	R_NaNF       string   `ldap:"nameAndNumberForm" json:"nameAndNumberForm"` // RASCHEMA § 2.3.19
-	R_IRI        []string `ldap:"iRI" json:"iRI,omitempty"`        		  // RASCHEMA § 2.3.3
+	R_N          string   `ldap:"n" json:"n"`                 		            // RASCHEMA § 2.3.1
+	R_ASN1Not    string   `ldap:"aSN1Notation" json:"aSN1Notation,omitempty"`      	    // RASCHEMA § 2.3.4
+	R_DotNot     string   `ldap:"dotNotation" json:"dotNotation,omitempty"`       	    // RASCHEMA § 2.3.2
+	R_Id         string   `ldap:"identifier" json:"identifier,omitempty"`        	    // RASCHEMA § 2.3.7
+	R_NaNF       string   `ldap:"nameAndNumberForm" json:"nameAndNumberForm,omitempty"` // RASCHEMA § 2.3.19
+	R_IRI        []string `ldap:"iRI" json:"iRI,omitempty"`        		            // RASCHEMA § 2.3.3
 
 	r_DITProfile *DITProfile `json:"-"`
 	r_root       *registeredRoot

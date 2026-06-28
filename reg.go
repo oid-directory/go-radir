@@ -17,9 +17,9 @@ type Registration struct {
 	R_GSR     string   `ldap:"governingStructureRule" json:"governingStructureRule,omitempty"`
 	R_TTL     string   `ldap:"rATTL" json:"rATTL,omitempty"`
 	RC_TTL    string   `ldap:"c-rATTL;collective" json:"c-rATTL,omitempty"`
-	R_SOC     string   `ldap:"structuralObjectClass" json:"structuralObjectClass"`
+	R_SOC     string   `ldap:"structuralObjectClass" json:"structuralObjectClass,omitempty"`
 	R_CAS     []string `ldap:"collectiveAttributeSubentries" json:"collectiveAttributeSubentries,omitempty"`
-	R_OC      []string `ldap:"objectClass" json:"objectClass"`
+	R_OC      []string `ldap:"objectClass" json:"objectClass,omitempty"`
 
 	// description is effective "title" of registration
 	R_Desc    []string `ldap:"description" json:"description,omitempty"`
@@ -28,12 +28,12 @@ type Registration struct {
 	// longArc is only permitted for subArcs of Joint-ISO-ITU-T (2).
 	R_LongArc []string `ldap:"longArc" json:"longArc,omitempty"`
 
-	R_X660    *X660       `json:"x660"`   // ITU-T Rec. X.660 types
-	R_X667    *X667       `json:"x667"`   // ITU-T Rec. X.667 types
-	R_X680    *X680       `json:"x680"`   // ITU-T Rec. X.680 types
-	R_X690    *X690       `json:"x690"`   // ITU-T Rec. X.690 types
-	R_Extra   *Supplement `json:"extra"`  // Non-standard: Supplemental types
-	R_Spatial *Spatial    `json:"spatial"`// Non-standard: Spatial types
+	R_X660    *X660       `json:"x660,omitempty"`   // ITU-T Rec. X.660 types
+	R_X667    *X667       `json:"x667,omitempty"`   // ITU-T Rec. X.667 types
+	R_X680    *X680       `json:"x680,omitempty"`   // ITU-T Rec. X.680 types
+	R_X690    *X690       `json:"x690,omitempty"`   // ITU-T Rec. X.690 types
+	R_Extra   *Supplement `json:"extra,omitempty"`  // Non-standard: Supplemental types
+	R_Spatial *Spatial    `json:"spatial,omitempty"`// Non-standard: Spatial types
 
 	R_DITProfile *DITProfile    `json:"-"`
 	r_Parent     *Registration  `json:"parent"`
