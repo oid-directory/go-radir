@@ -25,7 +25,7 @@ type X680 struct {
 	R_DotNot     string   `ldap:"dotNotation" json:"dotNotation"`       	  // RASCHEMA § 2.3.2
 	R_Id         string   `ldap:"identifier" json:"identifier"`        	  // RASCHEMA § 2.3.7
 	R_NaNF       string   `ldap:"nameAndNumberForm" json:"nameAndNumberForm"` // RASCHEMA § 2.3.19
-	R_IRI        []string `ldap:"iRI" json:"iRI"`               		  // RASCHEMA § 2.3.3
+	R_IRI        []string `ldap:"iRI" json:"iRI,omitempty"`        		  // RASCHEMA § 2.3.3
 
 	r_DITProfile *DITProfile `json:"-"`
 	r_root       *registeredRoot
