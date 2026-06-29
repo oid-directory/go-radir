@@ -150,6 +150,7 @@ func TestAuthority_codecov(t *testing.T) {
 	reg.CurrentAuthority()
 	reg.Sponsor()
 	reg.Dedicated()
+	_ = reg.Map()
 
 	reg = &Registrant{}
 	reg.Marshal(nil)

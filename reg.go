@@ -43,11 +43,11 @@ type Registration struct {
 }
 
 /*
-Map returns an instance of map[string]any containing exported fields
-derived from the receiver instance.
+Map returns an instance of [Map] (map[string]any) containing
+exported fields derived from the receiver instance.
 */
-func (r *Registration) Map() map[string]any {
-	m := make(map[string]any)
+func (r *Registration) Map() Map {
+	m := make(Map)
 	if !r.IsZero() {
 		marshalIntoMap(m, valOf(r))
 	}

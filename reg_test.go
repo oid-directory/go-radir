@@ -575,6 +575,7 @@ func TestRegistrations(t *testing.T) {
 	nreg2.SetDN(`n=2,n=18,n=999,n=56521,n=1,n=4,n=1,n=6,n=3,n=1,ou=Registrations,o=rA`)
 	nreg2.X680().SetDotNotation(o2)
 	nreg2.X680().SetN(`2`)
+	nreg2.RC_TTL = "15" // manually set a collective value
 	nreg2.Supplement().SetLeafNode("true")
 	nreg2.Spatial().SetTopArc("n=1,ou=Registrations,o=rA")
 	nreg2.Spatial().SetCTopArc("n=bad,ou=Registrations,o=rA")

@@ -152,7 +152,7 @@ func structEmpty(x any) (is bool) {
 	return
 }
 
-func marshalIntoMap(out map[string]any, rv reflect.Value) {
+func marshalIntoMap(out Map, rv reflect.Value) {
     for rv.Kind() == reflect.Pointer {
         if rv.IsNil() {
             return
@@ -170,11 +170,18 @@ func marshalIntoMap(out map[string]any, rv reflect.Value) {
         sf := rt.Field(i)
         fv := rv.Field(i)
 
-        if sf.PkgPath != "" || sf.Name == `R_DITProfile` {
+        if sf.PkgPath != "" {
             continue
         }
 
-        tag := sf.Tag.Get("json")
+	if sf.Name == `R_DITProfile` {
+		if prof := fv.Interface(); prof != nil {
+			out[`dITProfile`] = fv.Interface()
+		}
+		continue
+	}
+
+        tag := sf.Tag.Get("ldap")
         if tag == "" || tag == "-" {
             continue
         }
@@ -184,11 +191,15 @@ func marshalIntoMap(out map[string]any, rv reflect.Value) {
             continue
         }
 
+	// if a tag exists (e.g.: ";collective"),
+	// chop it off.
+	name, _, _ = strings.Cut(name, ";")
+
         switch fv.Kind() {
         case reflect.String:
             if fv.Len() > 0 {
 		if sf.Name == `R_LeafNode` || sf.Name == `R_Frozen` {
-			// handle the few Boolean values we
+			// handle the very few Boolean values we
 			// might encounter as proper bool values.
 			out[name] = lc(fv.String()) == `true`
 		} else {
