@@ -148,6 +148,18 @@ func (r *Subentry) IsZero() bool {
 	return r == nil
 }
 
+/*
+Map returns an instance of [Map] (map[string]any) containing
+exported fields derived from the receiver instance.
+*/
+func (r *Subentry) Map() Map {
+        m := make(Map)
+        if !r.IsZero() {
+                marshalIntoMap(m, valOf(r))
+        }
+        return m
+}
+
 func (r *Subentry) isEmpty() bool {
 	return structEmpty(r)
 }

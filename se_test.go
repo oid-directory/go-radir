@@ -75,6 +75,8 @@ func TestSubentry_codecov(t *testing.T) {
 		return
 	}
 
+	_ = subentry.Map()
+
 	subentry.isEmpty()
 	subentry.StructuralObjectClass()
 	subentry.DN()
