@@ -39,6 +39,18 @@ type Registrant struct {
 }
 
 /*
+Map returns an instance of map[string]any containing exported fields
+derived from the receiver instance.
+*/
+func (r *Registrant) Map() map[string]any {
+        m := make(map[string]any)
+        if !r.IsZero() {
+                marshalIntoMap(m, valOf(r))
+        }
+        return m
+}
+
+/*
 DN returns the distinguished name value assigned to the receiver instance.
 */
 func (r *Registrant) DN() (dn string) {

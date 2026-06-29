@@ -43,6 +43,18 @@ type Registration struct {
 }
 
 /*
+Map returns an instance of map[string]any containing exported fields
+derived from the receiver instance.
+*/
+func (r *Registration) Map() map[string]any {
+	m := make(map[string]any)
+	if !r.IsZero() {
+		marshalIntoMap(m, valOf(r))
+	}
+	return m
+}
+
+/*
 registeredRoot contains information about the nature and placement of
 this registration. It is populated through subsequent X.680 input, and
 will (likely) be queried at any point by other constructs, such as X.660.

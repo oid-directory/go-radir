@@ -143,8 +143,6 @@ func structEmpty(x any) (is bool) {
 			switch tv := iface.(type) {
 			case []string:
 				is = len(tv) == 0
-				//case []byte:
-				//is = len(tv) == 0
 			}
 		case reflect.Struct:
 			is = structEmpty(v.Interface())
@@ -152,6 +150,63 @@ func structEmpty(x any) (is bool) {
 	}
 
 	return
+}
+
+func marshalIntoMap(out map[string]any, rv reflect.Value) {
+    for rv.Kind() == reflect.Pointer {
+        if rv.IsNil() {
+            return
+        }
+        rv = rv.Elem()
+    }
+
+    if rv.Kind() != reflect.Struct {
+        return
+    }
+
+    rt := rv.Type()
+
+    for i := 0; i < rt.NumField(); i++ {
+        sf := rt.Field(i)
+        fv := rv.Field(i)
+
+        if sf.PkgPath != "" || sf.Name == `R_DITProfile` {
+            continue
+        }
+
+        tag := sf.Tag.Get("json")
+        if tag == "" || tag == "-" {
+            continue
+        }
+
+        name, _, _ := strings.Cut(tag, ",")
+        if name == "" {
+            continue
+        }
+
+        switch fv.Kind() {
+        case reflect.String:
+            if fv.Len() > 0 {
+		if sf.Name == `R_LeafNode` || sf.Name == `R_Frozen` {
+			// handle the few Boolean values we
+			// might encounter as proper bool values.
+			out[name] = lc(fv.String()) == `true`
+		} else {
+                	out[name] = fv.String()
+		}
+            }
+
+        case reflect.Slice:
+            if fv.Type().Elem().Kind() == reflect.String && fv.Len() > 0 {
+                out[name] = fv.Interface()
+            }
+
+        case reflect.Pointer:
+            if fv.Type().Elem().Kind() == reflect.Struct {
+                marshalIntoMap(out, fv)
+            }
+        }
+    }
 }
 
 /*

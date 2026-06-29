@@ -31,6 +31,7 @@ func ExampleX660_LongArc_violation() {
 
 }
 
+
 /*
 This example demonstrates accessing information about the root through
 an arc *[Registration] instance. Use of this method is only meaningful
@@ -574,12 +575,15 @@ func TestRegistrations(t *testing.T) {
 	nreg2.SetDN(`n=2,n=18,n=999,n=56521,n=1,n=4,n=1,n=6,n=3,n=1,ou=Registrations,o=rA`)
 	nreg2.X680().SetDotNotation(o2)
 	nreg2.X680().SetN(`2`)
+	nreg2.Supplement().SetLeafNode("true")
 	nreg2.Spatial().SetTopArc("n=1,ou=Registrations,o=rA")
 	nreg2.Spatial().SetCTopArc("n=bad,ou=Registrations,o=rA")
 	if nreg2.Spatial().CTopArc() != "" {
 		t.Errorf("%s failed: collective attribute assigned to non-Subentry component", t.Name())
 		return
 	}
+
+	_ = nreg2.Map()
 
 	nreg2.Spatial().SetSupArc(`n=18,n=999,n=56521,n=1,n=4,n=1,n=6,n=3,n=1,ou=Registrations,o=rA`)
 	_ = nreg2.NewChild(`33`, `thisName`) // no need for var
