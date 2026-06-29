@@ -123,6 +123,26 @@ func (r Map) Registration() bool {
 }
 
 /*
+Subentry returns a Boolean value indicative of whether the receiver
+instance reflects a *[radir.Subentry] instance. This determination
+is made based on the presence of the "[subentry]" STRUCTURAL object
+class.
+
+[subentry]: https://www.rfc-editor.org/info/rfc3672/#section-2.4
+*/
+func (r Map) Subentry() bool {
+	var se bool
+	if !r.IsZero() {
+		if s, ok := r.StringsValue(`objectClass`); ok {
+			for i := 0; i < len(s) && !se; i++ {
+				se = s[i] == `subentry` 
+			}
+		}
+	}
+	return se
+}
+
+/*
 Registrant returns a Boolean value indicative of whether the receiver
 instance reflects a *[radir.Registant] instance. This determination
 is made based on the presence of the "[registrant]" STRUCTURAL object

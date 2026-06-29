@@ -52,6 +52,7 @@ func TTLPrecedence(dTTL, cTTL, eTTL any, fTTL ...any) int {
 			case string:
 				_p, _ = atoi(tv)
 			}
+
 			if _p > 0 {
 				if i < 3 {
 					p = _p
@@ -65,4 +66,19 @@ func TTLPrecedence(dTTL, cTTL, eTTL any, fTTL ...any) int {
 	}
 
 	return p
+}
+
+/*
+TTLPrecedenceFromEntry is a convenience wrapper which reads TTL information
+from the input instance of [Entry] and calls [TTLPrecedence] automatically.
+
+The (optional) variadic fTTL argument semantics are identical to those
+documented in the [TTLPrecedence] function.
+*/
+func TTLPrecedenceFromEntry(entry Entry, fTTL ...any) int {
+	return TTLPrecedence(
+		entry.Profile().TTL(),
+		entry.CTTL(),
+		entry.TTL(),
+		fTTL...)
 }
