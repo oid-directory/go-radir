@@ -448,7 +448,7 @@ func DotNotToDN2D(args ...any) (dn any, err error) {
 		return
 	}
 
-	r, ok := args[1].(*Registration)
+	r, ok := args[1].(Entry)
 	if !ok {
 		err = NilRegistrationErr
 		return
@@ -606,7 +606,7 @@ func DotNotToDN3D(args ...any) (dn any, err error) {
 		return
 	}
 
-	r, ok := args[1].(*Registration)
+	r, ok := args[1].(Entry)
 	if !ok {
 		err = NilRegistrationErr
 		return
