@@ -132,7 +132,11 @@ TTL returns the string time-to-live value associated with the entry of the
 indicated profile.
 */
 func (r *DITProfile) TTL() string {
-	return r.R_TTL
+	var ttl string
+	if !r.IsZero() {
+		ttl = r.R_TTL
+	}
+	return ttl
 }
 
 /*
